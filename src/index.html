@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aura — Music Player</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div id="root">
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay">
+      <div id="loading-spinner"></div>
+      <span id="loading-text">Scanning songs…</span>
+    </div>
+
+    <!-- Titlebar -->
+    <div id="titlebar">
+      <div id="app-brand">
+        <!-- <img id="title-icon" src="../assets/icon.png" alt=""/> -->
+        <span id="app-name">AURA</span>
+      </div>
+      <!-- <span id="app-name">AURA</span> -->
+      <div id="win-controls">
+        <!-- Queue toggle: "expand" arrows when queue hidden, "compress" when visible -->
+        <button id="btn-queue-toggle" title="Collapse queue">
+          <!-- Compress icon (queue visible → click to collapse) -->
+          <svg id="icon-compress" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <polyline points="9,1 13,1 13,5"/>
+            <polyline points="1,9 1,13 5,13"/>
+            <line x1="13" y1="1" x2="8" y2="6"/>
+            <line x1="1" y1="13" x2="6" y2="8"/>
+          </svg>
+          <!-- Expand icon (queue hidden → click to expand) -->
+          <svg id="icon-expand" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="display:none">
+            <polyline points="1,5 1,1 5,1"/>
+            <polyline points="9,13 13,13 13,9"/>
+            <line x1="1" y1="1" x2="6" y2="6"/>
+            <line x1="13" y1="13" x2="8" y2="8"/>
+          </svg>
+        </button>
+        <button id="btn-min" title="Minimize">
+          <svg viewBox="0 0 12 12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button id="btn-close" title="Close">
+          <svg viewBox="0 0 12 12"><line x1="2" y1="2" x2="10" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="2" x2="2" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main layout -->
+    <div id="layout">
+
+      <!-- ═══════════ LEFT: Player Panel ═══════════ -->
+      <div id="player-panel">
+        <div id="player-bg"></div>
+        <div id="player-blur-overlay"></div>
+
+        <!-- Album Art with fade-to-bottom -->
+        <div id="cover-wrap">
+          <div id="cover-glow"></div>
+          <div id="cover-container">
+            <img id="cover-img" src="" alt="cover"/>
+            <div id="cover-placeholder">
+              <svg viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="28" stroke="rgba(255,255,255,0.12)" stroke-width="1.2"/>
+                <circle cx="32" cy="32" r="10" stroke="rgba(255,255,255,0.18)" stroke-width="1.2"/>
+                <circle cx="32" cy="32" r="3" fill="rgba(255,255,255,0.15)"/>
+              </svg>
+            </div>
+            <!-- Fade gradient overlay on the cover -->
+            <!-- <div id="cover-fade"></div> -->
+          </div>
+          <div id="disc-ring"></div>
+        </div>
+
+        <!-- Song Info -->
+        <div id="song-info">
+          <div id="song-title-wrap">
+            <h1 id="song-title">No track loaded</h1>
+          </div>
+          <p id="song-artist">Add songs to get started</p>
+          <p id="song-album"></p>
+        </div>
+
+        <!-- Waveform + Seekbar -->
+        <div id="seekbar-area">
+          <canvas id="waveform-canvas"></canvas>
+          <div id="seek-track">
+            <div id="seek-fill"></div>
+            <div id="seek-thumb"></div>
+          </div>
+          <div id="seek-times">
+            <span id="time-current">0:00</span>
+            <span id="time-total">0:00</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div id="controls">
+          <button class="ctrl-btn icon-btn" id="btn-shuffle" title="Shuffle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20l16-16M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+            <span class="btn-dot"></span>
+          </button>
+          <button class="ctrl-btn icon-btn" id="btn-prev" title="Previous">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+          </button>
+          <button class="ctrl-btn play-btn" id="btn-play" title="Play/Pause">
+            <svg id="icon-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3" fill="currentColor"/></svg>
+            <svg id="icon-pause" viewBox="0 0 24 24" style="display:none"><rect x="5" y="3" width="4" height="18" rx="1" fill="currentColor"/><rect x="15" y="3" width="4" height="18" rx="1" fill="currentColor"/></svg>
+            <div id="play-ripple"></div>
+          </button>
+          <button class="ctrl-btn icon-btn" id="btn-next" title="Next">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </button>
+          <button class="ctrl-btn icon-btn" id="btn-repeat" title="Repeat off">
+            <svg id="icon-repeat-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <svg id="icon-repeat-one" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="12" y="14.5" text-anchor="middle" font-size="6.5" fill="currentColor" stroke="none" font-family="DM Sans,sans-serif" font-weight="700">1</text></svg>
+            <span class="btn-dot"></span>
+          </button>
+        </div>
+
+        <!-- Volume -->
+        <div id="volume-row">
+          <svg id="vol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+          <div id="vol-track">
+            <div id="vol-fill"></div>
+            <div id="vol-thumb"></div>
+          </div>
+          <span id="vol-label">80</span>
+        </div>
+
+        <!-- Add / Rescan controls -->
+        <div id="add-controls">
+          <button class="add-btn" id="btn-add-files">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+            Files
+          </button>
+          <button class="add-btn" id="btn-add-folder">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z"/></svg>
+            Folder
+          </button>
+          <button class="add-btn" id="btn-rescan" title="Rescan songs/ directory">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4a8 8 0 1 1 0 12M4 4v4h4"/></svg>
+            Rescan
+          </button>
+        </div>
+
+        <!-- Equalizer -->
+        <div id="eq-panel">
+          <div id="eq-header">
+            <span id="eq-title">EQUALIZER</span>
+            <label id="eq-toggle-wrap">
+              <input type="checkbox" id="eq-toggle" checked/>
+              <span id="eq-toggle-track"><span id="eq-toggle-thumb"></span></span>
+            </label>
+          </div>
+          <div id="eq-bands">
+            <div class="eq-band" data-band="0">
+              <div class="eq-slider-wrap">
+                <div class="eq-track"><div class="eq-track-fill"></div></div>
+                <div class="eq-handle"><div class="eq-grip"></div></div>
+              </div>
+              <span class="eq-label">Sub</span>
+            </div>
+            <div class="eq-band" data-band="1">
+              <div class="eq-slider-wrap">
+                <div class="eq-track"><div class="eq-track-fill"></div></div>
+                <div class="eq-handle"><div class="eq-grip"></div></div>
+              </div>
+              <span class="eq-label">Bass</span>
+            </div>
+            <div class="eq-band" data-band="2">
+              <div class="eq-slider-wrap">
+                <div class="eq-track"><div class="eq-track-fill"></div></div>
+                <div class="eq-handle"><div class="eq-grip"></div></div>
+              </div>
+              <span class="eq-label">Mid</span>
+            </div>
+            <div class="eq-band" data-band="3">
+              <div class="eq-slider-wrap">
+                <div class="eq-track"><div class="eq-track-fill"></div></div>
+                <div class="eq-handle"><div class="eq-grip"></div></div>
+              </div>
+              <span class="eq-label">Presence</span>
+            </div>
+            <div class="eq-band" data-band="4">
+              <div class="eq-slider-wrap">
+                <div class="eq-track"><div class="eq-track-fill"></div></div>
+                <div class="eq-handle"><div class="eq-grip"></div></div>
+              </div>
+              <span class="eq-label">Treble</span>
+            </div>
+          </div>
+          <button id="eq-reset">Reset</button>
+        </div>
+
+      </div>
+
+      <!-- ═══════════ RIGHT: Queue Panel ═══════════ -->
+      <div id="queue-panel">
+        <div id="queue-header">
+          <h2>Queue</h2>
+          <span id="queue-meta"><span id="q-count">0</span> songs</span>
+        </div>
+        <div id="queue-search-wrap">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+          <input type="text" id="queue-search" placeholder="Search queue…" autocomplete="off"/>
+        </div>
+        <div id="queue-list"></div>
+        <div id="queue-footer">
+          <button id="btn-clear-queue">Clear queue</button>
+        </div>
+      </div>
+
+    </div><!-- /layout -->
+  </div><!-- /root -->
+
+  <audio id="audio" crossorigin="anonymous"></audio>
+  <script src="renderer.js"></script>
+</body>
+</html>

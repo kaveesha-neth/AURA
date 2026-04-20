@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Electron builder cache
+.cache/
+
+# App data / generated files
+data/
+songs/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Zip archives
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Misc junk
+{songs,src}/
+debug-scan.js
+test-meta.js
+backup/
