@@ -1,6 +1,6 @@
 {
   "name": "aura-music-player",
-  "version": "1.4.2",
+  "version": "1.6.0",
   "description": "Aura - Local Music Player",
   "main": "main.js",
   "scripts": {
@@ -24,8 +24,7 @@
       "main.js",
       "preload.js",
       "src/**/*",
-      "assets/**/*",
-      "songs/**/*"
+      "assets/**/*"
     ],
     "win": {
       "target": "nsis",
