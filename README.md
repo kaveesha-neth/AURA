@@ -174,9 +174,8 @@ Aura is distributed as a ready-to-install desktop app through GitHub Releases.
 2. Download the Windows installer, usually named something like `Aura Music Player Setup.exe`.
 3. Run the installer and open Aura.
 4. Click **Files** to select songs, or **Folder** to select your music folder.
-5. Done — Aura scans your music, builds the queue, and remembers your selected library sources for next time.
+5. Done. Aura scans your music, builds the queue, and remembers your selected library sources for next time.
 
-> You do not need Node.js, npm, or any developer setup to use the released app.
 
 ---
 
@@ -209,32 +208,6 @@ Open **Library** from the queue panel to manage:
 - scanned songs.
 
 Removing a folder or file from the Library modal only removes it from Aura's saved sources. It does **not** delete your actual files from disk.
-
----
-
-## Build for distribution
-
-Aura uses `electron-builder`.
-
-### Windows
-
-```bash
-npm run build-win
-```
-
-Output: `dist/` with a Windows NSIS installer.
-
-### macOS
-
-```bash
-npm run build-mac
-```
-
-### Linux
-
-```bash
-npm run build-linux
-```
 
 ---
 
