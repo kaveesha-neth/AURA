@@ -7,7 +7,7 @@ let mm; // music-metadata loaded lazily after app ready
 let mainWindow;
 
 const PANEL_W = 450;
-const WIN_H   = 800;
+const WIN_H   = 824;
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 const APP_ROOT   = path.join(__dirname);
@@ -245,9 +245,15 @@ function dedupeSongs(songs) {
     }
   }
 
+  // return [...bestByKey.values()].sort((a, b) => {
+  //   const aa = `${a.artist || ''} ${a.album || ''} ${String(a.track || '').padStart(3, '0')} ${a.title || ''}`.toLowerCase();
+  //   const bb = `${b.artist || ''} ${b.album || ''} ${String(b.track || '').padStart(3, '0')} ${b.title || ''}`.toLowerCase();
+  //   return aa.localeCompare(bb);
+  // });
+
   return [...bestByKey.values()].sort((a, b) => {
-    const aa = `${a.artist || ''} ${a.album || ''} ${String(a.track || '').padStart(3, '0')} ${a.title || ''}`.toLowerCase();
-    const bb = `${b.artist || ''} ${b.album || ''} ${String(b.track || '').padStart(3, '0')} ${b.title || ''}`.toLowerCase();
+    const aa = `${a.filePath || a.fileName || ''}`.toLowerCase();
+    const bb = `${b.filePath || b.fileName || ''}`.toLowerCase();
     return aa.localeCompare(bb);
   });
 }
