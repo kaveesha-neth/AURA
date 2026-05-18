@@ -26,19 +26,6 @@ The app reads local audio files, extracts metadata and album art, builds a persi
 
 ---
 
-## Preview
-
-Place your screenshot here:
-
-```text
-docs/
-└── screenshots/
-    └── aura-main.png
-```
-
-Recommended screenshot size: **900 × 824 px** or a clean crop of the full app window.
-
----
 
 ## Features
 
