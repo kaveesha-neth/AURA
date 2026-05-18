@@ -32,7 +32,7 @@
   --accent-gl2: rgba(53, 213, 255, 0.22);
   --danger: #ff6b8b;
   --W: 450px;
-  --H: 800px;
+  --H: 824px;
   --r: 12px;
   --rl: 20px;
   --rx: 28px;
@@ -214,13 +214,32 @@ to {
 #layout {
   display: flex;
   flex: 1;
+  min-height: 0;
   overflow: visible;
   position: relative;
 }
 
+#app-footer {
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border-top: 0.5px solid var(--border);
+  background: rgba(3, 4, 23, 0.72);
+  color: rgba(216, 223, 255, 0.38);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  user-select: none;
+  pointer-events: none;
+}
+
 #player-panel {
   width: var(--W);
-  height: calc(var(--H) - 38px);
+  /* height: calc(var(--H) - 38px); */
+  height: calc(var(--H) - 38px - 22px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -676,7 +695,8 @@ to {
 #queue-panel {
   width: var(--W);
   flex-shrink: 0;
-  height: calc(var(--H) - 38px);
+  /* height: calc(var(--H) - 38px); */
+  height: calc(var(--H) - 38px - 22px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2522,4 +2542,19 @@ from {
 
 :root {
   --cover-size: 385px;
+}
+
+#cover-container {
+  box-shadow: none !important;
+}
+
+#cover-container.playing {
+  box-shadow: none !important;
+}
+
+#cover-glow {
+  box-shadow:
+    0 16px 70px rgba(0, 0, 0, 0.72),
+    0 0 64px rgba(63, 92, 255, 0.28),
+    0 0 110px rgba(53, 213, 255, 0.08);
 }
