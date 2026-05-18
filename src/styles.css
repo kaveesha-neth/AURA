@@ -65,8 +65,16 @@ body {
   width: calc(var(--W) * 2);
   height: var(--H);
   background:
-    radial-gradient(circle at 16% 10%, rgba(63, 92, 255, 0.18), transparent 32%),
-    radial-gradient(circle at 76% 82%, rgba(53, 213, 255, 0.10), transparent 34%),
+    radial-gradient(
+      circle at 16% 10%,
+      rgba(63, 92, 255, 0.18),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 76% 82%,
+      rgba(53, 213, 255, 0.1),
+      transparent 34%
+    ),
     linear-gradient(135deg, #030417 0%, #050720 48%, #000369 100%);
   border-radius: var(--rx);
   overflow: hidden;
@@ -154,7 +162,7 @@ body {
 }
 
 #app-name {
-  font-family: 'Syne', sans-serif;
+  font-family: "Syne", sans-serif;
   font-weight: 800;
   font-size: 11px;
   letter-spacing: 0.3em;
@@ -219,7 +227,7 @@ body {
 #layout {
   display: flex;
   flex: 1;
-  overflow: visible;  /* allow queue to slide outside during transition */
+  overflow: visible; /* allow queue to slide outside during transition */
   position: relative;
 }
 
@@ -264,6 +272,7 @@ body {
   margin-bottom: 22px;
   flex-shrink: 0;
   animation: fadeUp 0.6s var(--expo) 0.1s both;
+  border-radius: 20px;
 }
 #cover-glow {
   position: absolute;
@@ -417,7 +426,12 @@ body {
 }
 #seek-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--cyan-accent), var(--blue-bright), var(--violet-accent));
+  background: linear-gradient(
+    90deg,
+    var(--cyan-accent),
+    var(--blue-bright),
+    var(--violet-accent)
+  );
   box-shadow: 0 0 14px rgba(63, 92, 255, 0.32);
   border-radius: 2px;
   transition: width 0.1s linear;
@@ -528,7 +542,7 @@ body {
   transform: scale(1.07);
   box-shadow:
     0 0 36px rgba(63, 92, 255, 0.62),
-    0 0 0 7px rgba(53, 213, 255, 0.10);
+    0 0 0 7px rgba(53, 213, 255, 0.1);
 }
 .play-btn:active {
   transform: scale(0.93);
@@ -677,8 +691,9 @@ body {
   animation: fadeUp 0.5s var(--expo) 0.2s both;
   /* Slide transition */
   transform: translateX(0);
-  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity  0.3s ease;
+  transition:
+    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.3s ease;
   opacity: 1;
   pointer-events: all;
 }
@@ -781,7 +796,11 @@ body {
   background: rgba(124, 140, 255, 0.055);
 }
 .q-item.active {
-  background: linear-gradient(90deg, rgba(63, 92, 255, 0.28), rgba(16, 20, 61, 0.62));
+  background: linear-gradient(
+    90deg,
+    rgba(63, 92, 255, 0.28),
+    rgba(16, 20, 61, 0.62)
+  );
   box-shadow: inset 0 0 18px rgba(63, 92, 255, 0.16);
 }
 .q-item.active::before {
@@ -830,30 +849,30 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 7px;
-  overflow: hidden;
+  overflow: visible;
   background: var(--surface4);
-  border: 0.5px solid var(--border);
+  border: none;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  /* Soft fade on all 4 edges using mask */
-  -webkit-mask-image: radial-gradient(
-    ellipse 80% 80% at 50% 50%,
-    black 55%,
-    transparent 100%
-  );
-  mask-image: radial-gradient(
-    ellipse 80% 80% at 50% 50%,
-    black 55%,
-    transparent 100%
-  );
 }
 .q-art img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 7px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 85% 85% at 50% 50%,
+    black 45%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 85% 85% at 50% 50%,
+    black 45%,
+    transparent 100%
+  );
 }
 
 /* Now-playing overlay on queue album art */
@@ -905,9 +924,16 @@ body {
   transition: opacity 0.13s ease;
   padding: 2px;
 }
-.q-item:hover .q-drag-handle { opacity: 1; }
-.q-drag-handle:active         { cursor: grabbing; }
-.q-drag-handle svg            { width: 12px; height: 12px; }
+.q-item:hover .q-drag-handle {
+  opacity: 1;
+}
+.q-drag-handle:active {
+  cursor: grabbing;
+}
+.q-drag-handle svg {
+  width: 12px;
+  height: 12px;
+}
 
 /* ── Action buttons (play-next + remove) shown on right-side hover ── */
 .q-actions {
@@ -917,7 +943,9 @@ body {
   flex-shrink: 0;
   opacity: 0;
   transform: translateX(4px);
-  transition: opacity 0.15s ease, transform 0.15s var(--spring);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s var(--spring);
   pointer-events: none;
 }
 .q-item:hover .q-actions {
@@ -936,11 +964,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.13s ease, color 0.13s ease;
+  transition:
+    background 0.13s ease,
+    color 0.13s ease;
   flex-shrink: 0;
   padding: 0;
 }
-.q-btn svg { width: 12px; height: 12px; }
+.q-btn svg {
+  width: 12px;
+  height: 12px;
+}
 
 .q-play-next {
   color: var(--text-3);
@@ -969,18 +1002,22 @@ body {
 
 /* ── Drop position indicators ── */
 .q-item.q-drag-over-top::before {
-  content: '';
+  content: "";
   position: absolute;
-  top: -1px; left: 8px; right: 8px;
+  top: -1px;
+  left: 8px;
+  right: 8px;
   height: 2px;
   background: var(--blue-bright);
   border-radius: 2px;
   box-shadow: 0 0 6px var(--accent);
 }
 .q-item.q-drag-over-bot::after {
-  content: '';
+  content: "";
   position: absolute;
-  bottom: -1px; left: 8px; right: 8px;
+  bottom: -1px;
+  left: 8px;
+  right: 8px;
   height: 2px;
   background: var(--blue-bright);
   border-radius: 2px;
@@ -989,8 +1026,12 @@ body {
 
 /* ── Play-next flash highlight ── */
 @keyframes q-flash-in {
-  0%   { background: rgba(63, 92, 255, 0.28); }
-  100% { background: transparent; }
+  0% {
+    background: rgba(63, 92, 255, 0.28);
+  }
+  100% {
+    background: transparent;
+  }
 }
 .q-flash {
   animation: q-flash-in 0.7s ease forwards;
@@ -1053,14 +1094,12 @@ body {
   background: rgba(248, 113, 113, 0.05);
 }
 
-
-
 /* ===== BLUE THEME POLISH OVERRIDES ===== */
 #root {
   box-shadow:
     0 40px 120px rgba(0, 0, 0, 0.88),
     0 0 70px rgba(0, 3, 105, 0.26),
-    0 0 0 0.5px rgba(124, 140, 255, 0.10) inset;
+    0 0 0 0.5px rgba(124, 140, 255, 0.1) inset;
 }
 
 #titlebar {
@@ -1073,19 +1112,27 @@ body {
 
 #player-panel {
   background:
-    radial-gradient(circle at 50% 6%, rgba(63, 92, 255, 0.10), transparent 40%),
+    radial-gradient(circle at 50% 6%, rgba(63, 92, 255, 0.1), transparent 40%),
     linear-gradient(180deg, rgba(7, 9, 34, 0.32), rgba(3, 4, 23, 0.72));
 }
 
 #queue-panel {
   background:
-    radial-gradient(circle at 95% 10%, rgba(53, 213, 255, 0.07), transparent 32%),
+    radial-gradient(
+      circle at 95% 10%,
+      rgba(53, 213, 255, 0.07),
+      transparent 32%
+    ),
     linear-gradient(180deg, rgba(7, 9, 34, 0.98), rgba(5, 7, 32, 0.98));
 }
 
 #cover-glow {
-  background:
-    radial-gradient(circle, rgba(63, 92, 255, 0.34) 0%, rgba(53, 213, 255, 0.12) 38%, transparent 68%);
+  background: radial-gradient(
+    circle,
+    rgba(63, 92, 255, 0.34) 0%,
+    rgba(53, 213, 255, 0.12) 38%,
+    transparent 68%
+  );
 }
 
 #cover-container {
@@ -1112,16 +1159,24 @@ body {
 
 .icon-btn:hover {
   background: rgba(63, 92, 255, 0.12);
-  box-shadow: 0 0 18px rgba(63, 92, 255, 0.10);
+  box-shadow: 0 0 18px rgba(63, 92, 255, 0.1);
 }
 
 .add-btn {
-  background: linear-gradient(145deg, rgba(11, 14, 47, 0.92), rgba(16, 20, 61, 0.78));
+  background: linear-gradient(
+    145deg,
+    rgba(11, 14, 47, 0.92),
+    rgba(16, 20, 61, 0.78)
+  );
   border-color: rgba(124, 140, 255, 0.18);
 }
 
 .add-btn:hover {
-  background: linear-gradient(135deg, rgba(16, 22, 168, 0.72), rgba(63, 92, 255, 0.30));
+  background: linear-gradient(
+    135deg,
+    rgba(16, 22, 168, 0.72),
+    rgba(63, 92, 255, 0.3)
+  );
   border-color: rgba(53, 213, 255, 0.28);
   box-shadow: 0 0 20px rgba(63, 92, 255, 0.16);
 }
@@ -1145,7 +1200,7 @@ body {
 }
 
 #eq-title {
-  color: rgba(216, 223, 255, 0.50);
+  color: rgba(216, 223, 255, 0.5);
 }
 
 #eq-reset:hover {
@@ -1205,7 +1260,11 @@ body {
   border-radius: var(--r);
   padding: 11px 16px 12px;
   border: 0.5px solid rgba(124, 140, 255, 0.34);
-  background: linear-gradient(180deg, rgba(63, 92, 255, 0.08), rgba(7, 9, 34, 0.42));
+  background: linear-gradient(
+    180deg,
+    rgba(63, 92, 255, 0.08),
+    rgba(7, 9, 34, 0.42)
+  );
   position: relative;
   z-index: 2;
   animation: fadeUp 0.6s var(--expo) 0.48s both;
@@ -1245,7 +1304,11 @@ body {
   transition: background 0.2s ease;
 }
 #eq-toggle:checked + #eq-toggle-track {
-  background: linear-gradient(90deg, rgba(53, 213, 255, 0.65), rgba(63, 92, 255, 0.75));
+  background: linear-gradient(
+    90deg,
+    rgba(53, 213, 255, 0.65),
+    rgba(63, 92, 255, 0.75)
+  );
   border-color: rgba(53, 213, 255, 0.35);
 }
 #eq-toggle-thumb {
@@ -1438,7 +1501,11 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 30% 15%, rgba(63, 92, 255, 0.18), transparent 34%),
+    radial-gradient(
+      circle at 30% 15%,
+      rgba(63, 92, 255, 0.18),
+      transparent 34%
+    ),
     rgba(1, 2, 18, 0.62);
   backdrop-filter: blur(18px);
 }
@@ -1463,7 +1530,9 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: transform 0.24s var(--expo), opacity 0.24s ease;
+  transition:
+    transform 0.24s var(--expo),
+    opacity 0.24s ease;
 }
 #library-modal.open #library-dialog {
   transform: translate(-50%, -50%) scale(1);
@@ -1516,8 +1585,12 @@ body {
 .library-action {
   height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(124, 140, 255, 0.20);
-  background: linear-gradient(145deg, rgba(11, 14, 47, 0.92), rgba(16, 20, 61, 0.72));
+  border: 1px solid rgba(124, 140, 255, 0.2);
+  background: linear-gradient(
+    145deg,
+    rgba(11, 14, 47, 0.92),
+    rgba(16, 20, 61, 0.72)
+  );
   color: var(--text-2);
   font-family: "DM Sans", sans-serif;
   font-size: 12px;
@@ -1626,7 +1699,11 @@ body {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: linear-gradient(145deg, rgba(16, 20, 61, 0.9), rgba(7, 9, 34, 0.9));
+  background: linear-gradient(
+    145deg,
+    rgba(16, 20, 61, 0.9),
+    rgba(7, 9, 34, 0.9)
+  );
   border: 1px solid rgba(124, 140, 255, 0.14);
   color: var(--cyan-accent);
   display: grid;
@@ -1712,7 +1789,7 @@ body {
 #library-dialog-footer {
   min-height: 58px;
   padding: 12px 24px 18px;
-  border-top: 1px solid rgba(124, 140, 255, 0.10);
+  border-top: 1px solid rgba(124, 140, 255, 0.1);
   display: flex;
   align-items: center;
   gap: 14px;
@@ -1721,7 +1798,7 @@ body {
   height: 32px;
   padding: 0 12px;
   border-radius: 11px;
-  border: 1px solid rgba(255, 107, 139, 0.20);
+  border: 1px solid rgba(255, 107, 139, 0.2);
   background: rgba(255, 107, 139, 0.07);
   color: rgba(255, 174, 190, 0.92);
   font-family: "DM Sans", sans-serif;
@@ -1771,7 +1848,12 @@ body {
   inset: 0;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 50% 50%, rgba(3, 4, 23, 0.34) 0%, rgba(3, 4, 23, 0.52) 58%, rgba(3, 4, 23, 0.82) 100%),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(3, 4, 23, 0.34) 0%,
+      rgba(3, 4, 23, 0.52) 58%,
+      rgba(3, 4, 23, 0.82) 100%
+    ),
     linear-gradient(180deg, rgba(0, 3, 105, 0.14), rgba(53, 213, 255, 0.06));
   backdrop-filter: blur(1.6px) saturate(1.12);
   box-shadow:
@@ -1791,8 +1873,20 @@ body {
   gap: 7px;
   text-align: center;
   padding: 18px 8px;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 13%, #000 87%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0%, #000 13%, #000 87%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 13%,
+    #000 87%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 13%,
+    #000 87%,
+    transparent 100%
+  );
 }
 
 .lyrics-line {
@@ -1824,7 +1918,7 @@ body {
 .lyrics-side {
   font-size: 10.5px;
   font-weight: 600;
-  color: rgba(216, 223, 255, 0.60);
+  color: rgba(216, 223, 255, 0.6);
   opacity: 0.56;
   -webkit-line-clamp: 1;
   transform: scale(0.94);
@@ -1833,14 +1927,38 @@ body {
 
 #lyrics-prev {
   transform: translateY(7px) scale(0.94);
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.25) 30%, #000 72%, #000 100%);
-  mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.25) 30%, #000 72%, #000 100%);
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.25) 30%,
+    #000 72%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.25) 30%,
+    #000 72%,
+    #000 100%
+  );
 }
 
 #lyrics-next {
   transform: translateY(-7px) scale(0.94);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 28%, rgba(0,0,0,0.25) 70%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 28%, rgba(0,0,0,0.25) 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 28%,
+    rgba(0, 0, 0, 0.25) 70%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 28%,
+    rgba(0, 0, 0, 0.25) 70%,
+    transparent 100%
+  );
 }
 
 #lyrics-status {
@@ -1854,7 +1972,7 @@ body {
   border-radius: 999px;
   background: rgba(0, 3, 105, 0.32);
   border: 1px solid rgba(53, 213, 255, 0.14);
-  color: rgba(216, 223, 255, 0.50);
+  color: rgba(216, 223, 255, 0.5);
   font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -1893,28 +2011,58 @@ body {
 }
 
 @keyframes lyric-main-in {
-  from { opacity: 0.42; transform: translateY(4px) scale(0.985); filter: blur(1.2px); }
-  to   { opacity: 1;    transform: translateY(0) scale(1);       filter: blur(0); }
+  from {
+    opacity: 0.42;
+    transform: translateY(4px) scale(0.985);
+    filter: blur(1.2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }
 
 @keyframes lyric-prev-in {
-  from { opacity: 0; transform: translateY(-6px) scale(0.92); }
-  to   { opacity: 0.56; transform: translateY(7px) scale(0.94); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.92);
+  }
+  to {
+    opacity: 0.56;
+    transform: translateY(7px) scale(0.94);
+  }
 }
 
 @keyframes lyric-next-in {
-  from { opacity: 0; transform: translateY(6px) scale(0.92); }
-  to   { opacity: 0.56; transform: translateY(-7px) scale(0.94); }
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+  }
+  to {
+    opacity: 0.56;
+    transform: translateY(-7px) scale(0.94);
+  }
 }
 
 @keyframes lyrics-pulse {
-  0%, 100% { opacity: 0.92; }
-  50%      { opacity: 0.72; }
+  0%,
+  100% {
+    opacity: 0.92;
+  }
+  50% {
+    opacity: 0.72;
+  }
 }
 
 #cover-wrap:hover #lyrics-overlay.lyrics-has-lines #lyrics-vignette {
   background:
-    radial-gradient(circle at 50% 50%, rgba(3, 4, 23, 0.44) 0%, rgba(3, 4, 23, 0.62) 58%, rgba(3, 4, 23, 0.88) 100%),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(3, 4, 23, 0.44) 0%,
+      rgba(3, 4, 23, 0.62) 58%,
+      rgba(3, 4, 23, 0.88) 100%
+    ),
     linear-gradient(180deg, rgba(0, 3, 105, 0.18), rgba(53, 213, 255, 0.08));
 }
 
@@ -1975,7 +2123,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: linear-gradient(180deg, rgba(7, 9, 34, 0.72), rgba(3, 4, 23, 0.88));
+  background: linear-gradient(
+    180deg,
+    rgba(7, 9, 34, 0.72),
+    rgba(3, 4, 23, 0.88)
+  );
   backdrop-filter: blur(12px);
 }
 
@@ -1991,13 +2143,21 @@ body {
   height: 33px;
   min-width: 0;
   border-radius: 12px;
-  background: linear-gradient(145deg, rgba(11, 14, 47, 0.92), rgba(16, 20, 61, 0.78));
+  background: linear-gradient(
+    145deg,
+    rgba(11, 14, 47, 0.92),
+    rgba(16, 20, 61, 0.78)
+  );
   border-color: rgba(124, 140, 255, 0.24);
   font-size: 10.5px;
 }
 
 #queue-footer .add-btn:hover {
-  background: linear-gradient(145deg, rgba(16, 22, 168, 0.46), rgba(63, 92, 255, 0.20));
+  background: linear-gradient(
+    145deg,
+    rgba(16, 22, 168, 0.46),
+    rgba(63, 92, 255, 0.2)
+  );
   border-color: rgba(53, 213, 255, 0.34);
   box-shadow: 0 0 18px rgba(63, 92, 255, 0.14);
 }
@@ -2016,7 +2176,7 @@ body {
 
 .lyrics-line {
   font-family: var(--lyric-font);
-  line-height: 1.30;
+  line-height: 1.3;
   padding: 2px 0;
 }
 
@@ -2092,7 +2252,7 @@ body {
   background: linear-gradient(
     180deg,
     rgba(3, 4, 23, 1) 0%,
-    rgba(3, 4, 23, 0.90) 18%,
+    rgba(3, 4, 23, 0.9) 18%,
     rgba(3, 4, 23, 0.62) 45%,
     rgba(3, 4, 23, 0.25) 74%,
     transparent 100%
@@ -2104,7 +2264,7 @@ body {
   background: linear-gradient(
     0deg,
     rgba(3, 4, 23, 1) 0%,
-    rgba(3, 4, 23, 0.90) 18%,
+    rgba(3, 4, 23, 0.9) 18%,
     rgba(3, 4, 23, 0.62) 45%,
     rgba(3, 4, 23, 0.25) 74%,
     transparent 100%
@@ -2119,18 +2279,27 @@ body {
   z-index: 21;
   pointer-events: none;
   background:
-    linear-gradient(90deg,
+    linear-gradient(
+      90deg,
       rgba(3, 4, 23, 1) 0%,
-      rgba(3, 4, 23, 0.80) 7%,
+      rgba(3, 4, 23, 0.8) 7%,
       rgba(3, 4, 23, 0.32) 17%,
       transparent 31%,
       transparent 69%,
       rgba(3, 4, 23, 0.32) 83%,
-      rgba(3, 4, 23, 0.80) 93%,
+      rgba(3, 4, 23, 0.8) 93%,
       rgba(3, 4, 23, 1) 100%
     ),
-    radial-gradient(ellipse at left center, rgba(53, 213, 255, 0.13), transparent 36%),
-    radial-gradient(ellipse at right center, rgba(124, 140, 255, 0.15), transparent 36%);
+    radial-gradient(
+      ellipse at left center,
+      rgba(53, 213, 255, 0.13),
+      transparent 36%
+    ),
+    radial-gradient(
+      ellipse at right center,
+      rgba(124, 140, 255, 0.15),
+      transparent 36%
+    );
 }
 
 #cover-container,
@@ -2151,8 +2320,12 @@ body {
 }
 
 @keyframes disc-spin-wide {
-  from { transform: translateX(-50%) rotate(0deg); }
-  to { transform: translateX(-50%) rotate(360deg); }
+  from {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(360deg);
+  }
 }
 
 #cover-container::after {
@@ -2224,4 +2397,226 @@ body {
 #lyrics-overlay.lyrics-loading .lyrics-main {
   font-size: 15px;
   line-height: 1.28;
+}
+
+/* ===== FIX: remove rigid lyric/cover square ===== */
+#cover-wrap {
+  overflow: visible;
+  position: relative;
+  border-radius: 0;
+}
+
+/* Disable the old rectangular top/bottom fade overlay */
+#cover-wrap::before,
+#cover-wrap::after {
+  display: none !important;
+}
+
+/* Fade the oversized rotating disc itself */
+#cover-container {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.08) 13%,
+    rgba(0, 0, 0, 0.55) 25%,
+    #000 39%,
+    #000 61%,
+    rgba(0, 0, 0, 0.55) 75%,
+    rgba(0, 0, 0, 0.08) 87%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.08) 13%,
+    rgba(0, 0, 0, 0.55) 25%,
+    #000 39%,
+    #000 61%,
+    rgba(0, 0, 0, 0.55) 75%,
+    rgba(0, 0, 0, 0.08) 87%,
+    transparent 100%
+  );
+}
+
+/* Keep lyrics readable; fade only the lyric background layer */
+#lyrics-overlay {
+  overflow: visible;
+}
+
+#lyrics-vignette {
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.10) 13%,
+    rgba(0, 0, 0, 0.62) 27%,
+    #000 40%,
+    #000 60%,
+    rgba(0, 0, 0, 0.62) 73%,
+    rgba(0, 0, 0, 0.10) 87%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.10) 13%,
+    rgba(0, 0, 0, 0.62) 27%,
+    #000 40%,
+    #000 60%,
+    rgba(0, 0, 0, 0.62) 73%,
+    rgba(0, 0, 0, 0.10) 87%,
+    transparent 100%
+  );
+}
+
+#cover-wrap .disc-edge-glow {
+  z-index: 6;
+  opacity: 0.75;
+}
+/* ===== FIXED COVER WINDOW: clipped + faded, without pushing UI down ===== */
+:root {
+  --cover-size: 390px;
+  --cover-window-size: 238px; /* old slot height, don't increase this */
+  --cover-window-width: min(92%, 520px);
+}
+
+/* This remains the same layout height as before */
+#cover-wrap {
+  width: var(--cover-window-width);
+  height: var(--cover-window-size);
+  margin-top: 12px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+  isolation: isolate;
+
+  /* real top/bottom fade, not rectangular overlay */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.18) 10%,
+    rgba(0, 0, 0, 0.65) 20%,
+    #000 34%,
+    #000 66%,
+    rgba(0, 0, 0, 0.65) 80%,
+    rgba(0, 0, 0, 0.18) 90%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.18) 10%,
+    rgba(0, 0, 0, 0.65) 20%,
+    #000 34%,
+    #000 66%,
+    rgba(0, 0, 0, 0.65) 80%,
+    rgba(0, 0, 0, 0.18) 90%,
+    transparent 100%
+  );
+}
+
+/* kill the visible rectangular fade layers */
+#cover-wrap::before,
+#cover-wrap::after {
+  display: none !important;
+}
+
+/* center the oversized rotating disc inside the clipped window */
+#cover-container,
+#lyrics-overlay {
+  position: absolute;
+  width: var(--cover-size);
+  height: var(--cover-size);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* important: animation must preserve translate(-50%, -50%) */
+#cover-container.playing {
+  animation: disc-spin-window 14s linear infinite;
+}
+
+#cover-container.spinning-paused {
+  animation-play-state: paused;
+}
+
+@keyframes disc-spin-window {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* optional: remove ring if it creates visible edge artifacts */
+#disc-ring {
+  display: none;
+}
+
+#cover-wrap {
+  --cover-window-height: 238px;
+  --side-circle-size: 420px;   /* bigger = gentler arc */
+  --side-circle-offset: 372px; /* bigger = less cut-in */
+  --cover-cut-bg: #050720;     /* match player-panel bg */
+
+  width: var(--cover-window-width);
+  height: var(--cover-window-height);
+  margin-top: 12px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 0;
+
+  /* keep only top/bottom fade */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.18) 10%,
+    rgba(0, 0, 0, 0.65) 20%,
+    #000 34%,
+    #000 66%,
+    rgba(0, 0, 0, 0.65) 80%,
+    rgba(0, 0, 0, 0.18) 90%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.18) 10%,
+    rgba(0, 0, 0, 0.65) 20%,
+    #000 34%,
+    #000 66%,
+    rgba(0, 0, 0, 0.65) 80%,
+    rgba(0, 0, 0, 0.18) 90%,
+    transparent 100%
+  );
+}
+
+/* use the pseudo-elements as circular side cutters */
+#cover-wrap::before,
+#cover-wrap::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: var(--side-circle-size);
+  height: var(--side-circle-size);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: var(--cover-cut-bg);
+  z-index: 8;
+  pointer-events: none;
+}
+
+/* left arc */
+#cover-wrap::before {
+  left: calc(-1 * var(--side-circle-offset));
+}
+
+/* right arc */
+#cover-wrap::after {
+  right: calc(-1 * var(--side-circle-offset));
 }
