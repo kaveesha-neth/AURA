@@ -480,7 +480,9 @@ async function loadNode(node, autoplay) {
   renderQueue();
   if(autoplay){
     try{await audio.play();state.isPlaying=true;}catch(e){console.error(e);state.isPlaying=false;}
-    updatePlayBtn(); triggerRipple();
+    updatePlayBtn();
+    updateQueuePlayingState();
+    triggerRipple();
   }
   extractWaveform(url);
 }
@@ -494,6 +496,19 @@ function updatePlayBtn() {
   if(state.isPlaying){coverCont.classList.remove('spinning-paused');coverCont.classList.add('playing');}
   else{coverCont.classList.remove('playing');coverCont.classList.add('spinning-paused');}
 }
+function updateQueuePlayingState() {
+  const active = queueList.querySelector('.q-item.active');
+  if (!active) return;
+
+  active
+    .querySelector('.q-now-playing-overlay')
+    ?.classList.toggle('paused', !state.isPlaying);
+
+  active
+    .querySelector('.eq-anim')
+    ?.classList.toggle('paused', !state.isPlaying);
+}
+
 function triggerRipple(){btnPlay.classList.remove('rippling');void btnPlay.offsetHeight;btnPlay.classList.add('rippling');setTimeout(()=>btnPlay.classList.remove('rippling'),500);}
 function setVolume(v){
   state.volume=Math.max(0,Math.min(1,v));
@@ -611,8 +626,15 @@ function renderQueue() {
     btn.addEventListener('click',e=>{e.stopPropagation();removeNode(queue.map[btn.dataset.id]);});
   });
 
-  const active=queueList.querySelector('.q-item.active');
-  if(active) active.scrollIntoView({block:'nearest',behavior:'smooth'});
+  const active = queueList.querySelector('.q-item.active');
+
+  if (active && queueVisible && !root.classList.contains('queue-collapsed')) {
+    active.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+      behavior: 'smooth'
+    });
+  }
 
   setupDragReorder();
 }
@@ -945,10 +967,22 @@ document.addEventListener('drop',async e=>{
 btnPlay.addEventListener('click',async()=>{
   if(!queue.size) return;
   if(!state.currentNode){await loadNode(queue.head,true);return;}
-  if(state.isPlaying){audio.pause();state.isPlaying=false;}
-  else{try{await audio.play();state.isPlaying=true;triggerRipple();}catch{}}
-  updatePlayBtn(); renderQueue();
+
+  if(state.isPlaying){
+    audio.pause();
+    state.isPlaying=false;
+  } else {
+    try{
+      await audio.play();
+      state.isPlaying=true;
+      triggerRipple();
+    } catch {}
+  }
+
+  updatePlayBtn();
+  updateQueuePlayingState();
 });
+
 btnPrev.addEventListener('click',()=>{const n=getPrevNode();if(n)loadNode(n,state.isPlaying);});
 btnNext.addEventListener('click',()=>{const n=getNextNode();if(n)loadNode(n,state.isPlaying);});
 btnShuffle.addEventListener('click',()=>{state.shuffle=!state.shuffle;btnShuffle.classList.toggle('active',state.shuffle);});
@@ -1040,7 +1074,16 @@ audio.addEventListener('timeupdate',updateSeek);
 audio.addEventListener('loadedmetadata',()=>{timeTot.textContent=fmtTime(audio.duration);});
 audio.addEventListener('ended',()=>{
   if(state.repeat===2){audio.currentTime=0;audio.play();return;}
-  const n=getNextNode(); if(n)loadNode(n,true); else{state.isPlaying=false;updatePlayBtn();renderQueue();}
+
+  const n=getNextNode();
+
+  if(n){
+    loadNode(n,true);
+  } else {
+    state.isPlaying=false;
+    updatePlayBtn();
+    updateQueuePlayingState();
+  }
 });
 audio.addEventListener('error',e=>{console.warn(e);const n=getNextNode();if(n&&n!==state.currentNode)loadNode(n,state.isPlaying);});
 
