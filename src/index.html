@@ -43,6 +43,10 @@
             <line x1="13" y1="13" x2="8" y2="8"/>
           </svg>
         </button>
+        <button id="btn-maximize" title="Maximize" aria-label="Maximize window">
+          <svg id="icon-maximize" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.35"><rect x="2.25" y="2.25" width="7.5" height="7.5" rx="0.6"/></svg>
+          <svg id="icon-restore" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.25" style="display:none"><rect x="3.4" y="2.2" width="6.1" height="6.1" rx="0.5"/><path d="M2.5 4.1v5.4h5.4"/></svg>
+        </button>
         <button id="btn-min" title="Minimize">
           <svg viewBox="0 0 12 12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
@@ -96,9 +100,8 @@
           <p id="song-album"></p>
         </div>
 
-        <!-- Waveform + Seekbar -->
+        <!-- Timeline -->
         <div id="seekbar-area">
-          <canvas id="waveform-canvas"></canvas>
           <div id="seek-track">
             <div id="seek-fill"></div>
             <div id="seek-thumb"></div>
@@ -115,6 +118,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20l16-16M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
             <span class="btn-dot"></span>
           </button>
+          <button class="ctrl-btn icon-btn" id="btn-reshuffle" title="Reshuffle upcoming songs" aria-label="Reshuffle upcoming songs" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0 2 5.3"/><polyline points="20,4 20,11 13,11"/></svg>
+          </button>
           <button class="ctrl-btn icon-btn" id="btn-prev" title="Previous">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
           </button>
@@ -130,6 +136,9 @@
             <svg id="icon-repeat-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
             <svg id="icon-repeat-one" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="12" y="14.5" text-anchor="middle" font-size="6.5" fill="currentColor" stroke="none" font-family="DM Sans,sans-serif" font-weight="700">1</text></svg>
             <span class="btn-dot"></span>
+          </button>
+          <button class="ctrl-btn icon-btn" id="btn-fullscreen" title="Fullscreen player" aria-label="Enter fullscreen player">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,3 3,3 3,9"/><polyline points="15,3 21,3 21,9"/><polyline points="3,15 3,21 9,21"/><polyline points="21,15 21,21 15,21"/></svg>
           </button>
         </div>
 
@@ -193,6 +202,22 @@
         <div id="queue-search-wrap">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
           <input type="text" id="queue-search" placeholder="Search queue…" autocomplete="off"/>
+        </div>
+        <div id="queue-sort-bar">
+          <span id="queue-sort-label">Sort</span>
+          <button class="sort-pill" id="sort-artist" data-key="artist">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5" cy="4.5" r="2"/><path d="M1 12c0-2.2 1.8-4 4-4s4 1.8 4 4"/><line x1="10.5" y1="2" x2="10.5" y2="8"/><polyline points="8.5,4 10.5,2 12.5,4"/></svg>
+            Artist
+          </button>
+          <button class="sort-pill" id="sort-album" data-key="album">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><circle cx="7" cy="7" r="2"/></svg>
+            Album
+          </button>
+          <button class="sort-pill" id="sort-date" data-key="date">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="11" height="10" rx="1.5"/><line x1="1.5" y1="5.5" x2="12.5" y2="5.5"/><line x1="4.5" y1="1" x2="4.5" y2="4"/><line x1="9.5" y1="1" x2="9.5" y2="4"/></svg>
+            Date Added
+            <span class="sort-pill-dir" id="sort-date-dir">↑</span>
+          </button>
         </div>
         <div id="queue-list"></div>
         <div id="queue-footer">
@@ -272,6 +297,44 @@
         </div>
       </div>
     </div>
+
+    <!-- Fullscreen now-playing view -->
+    <section id="fullscreen-player" aria-hidden="true">
+      <div id="fullscreen-background"></div>
+      <div id="fullscreen-scrim"></div>
+      <button id="btn-exit-fullscreen" title="Exit fullscreen (Esc)" aria-label="Exit fullscreen">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,3 3,3 3,8"/><polyline points="12,3 17,3 17,8"/><polyline points="3,12 3,17 8,17"/><polyline points="17,12 17,17 12,17"/></svg>
+        <span>Exit fullscreen</span>
+      </button>
+      <div id="fullscreen-content">
+        <aside id="fullscreen-now-playing">
+          <img id="fullscreen-cover" alt="Album cover"/>
+          <div id="fullscreen-track-meta">
+            <h1 id="fullscreen-title">No track loaded</h1>
+            <p id="fullscreen-artist">Choose a song to get started</p>
+          </div>
+          <div id="fullscreen-timeline">
+            <div id="fullscreen-seek-track"><div id="fullscreen-seek-fill"></div><div id="fullscreen-seek-thumb"></div></div>
+            <div id="fullscreen-times"><span id="fullscreen-time-current">0:00</span><span id="fullscreen-time-total">0:00</span></div>
+          </div>
+          <div id="fullscreen-controls">
+            <button class="fullscreen-control" data-fullscreen-action="shuffle" title="Shuffle"><span>⇄</span></button>
+            <button class="fullscreen-control" data-fullscreen-action="prev" title="Previous"><span>◀◀</span></button>
+            <button class="fullscreen-control fullscreen-play" data-fullscreen-action="play" title="Play/Pause"><span id="fullscreen-icon-play">▶</span><span id="fullscreen-icon-pause" hidden>Ⅱ</span></button>
+            <button class="fullscreen-control" data-fullscreen-action="next" title="Next"><span>▶▶</span></button>
+            <button class="fullscreen-control" data-fullscreen-action="repeat" title="Repeat"><span>↻</span></button>
+          </div>
+        </aside>
+        <section id="fullscreen-lyrics" aria-live="polite">
+          <p class="fullscreen-lyric" data-lyric-offset="-2"></p>
+          <p class="fullscreen-lyric" data-lyric-offset="-1"></p>
+          <p class="fullscreen-lyric current" data-lyric-offset="0">Lyrics will appear here</p>
+          <p class="fullscreen-lyric" data-lyric-offset="1"></p>
+          <p class="fullscreen-lyric" data-lyric-offset="2"></p>
+          <p class="fullscreen-lyric" data-lyric-offset="3"></p>
+        </section>
+      </div>
+    </section>
 
   </div><!-- /root -->
 

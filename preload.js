@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   refreshLyrics: (song) => ipcRenderer.invoke('refresh-lyrics', song),
   minimize: () => ipcRenderer.send('win-minimize'),
   close:    () => ipcRenderer.send('win-close'),
+  toggleMaximize: () => ipcRenderer.send('win-toggle-maximize'),
+  setFullscreen: (enabled) => ipcRenderer.send('win-set-fullscreen', enabled),
   setWidth: (w) => ipcRenderer.send('win-set-width', w),
 });
 
@@ -23,3 +25,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 ipcRenderer.on('media-play-pause', () => window.dispatchEvent(new Event('media-play-pause')));
 ipcRenderer.on('media-next',       () => window.dispatchEvent(new Event('media-next')));
 ipcRenderer.on('media-prev',       () => window.dispatchEvent(new Event('media-prev')));
+ipcRenderer.on('window-focus-changed', (event, isFocused) => {
+  window.dispatchEvent(new CustomEvent('window-focus-changed', { detail: isFocused }));
+});
+ipcRenderer.on('fullscreen-changed', (event, isFullscreen) => {
+  window.dispatchEvent(new CustomEvent('fullscreen-changed', { detail: isFullscreen }));
+});
+ipcRenderer.on('window-maximized-changed', (event, isMaximized) => {
+  window.dispatchEvent(new CustomEvent('window-maximized-changed', { detail: isMaximized }));
+});

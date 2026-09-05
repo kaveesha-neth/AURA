@@ -5,6 +5,8 @@ const crypto = require('crypto');
 
 let mm; // music-metadata loaded lazily after app ready
 let mainWindow;
+let windowedBounds = null;
+let wasMaximizedBeforeFullscreen = false;
 
 const PANEL_W = 450;
 const WIN_H   = 824;
@@ -671,15 +673,13 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: PANEL_W * 2,
     height: WIN_H,
-    minWidth: PANEL_W * 2,
-    minHeight: WIN_H,
-    maxWidth: PANEL_W * 2,
-    maxHeight: WIN_H,
-    resizable: false,
+    minWidth: 750,
+    minHeight: 600,
+    resizable: true,
     frame: false,
-    transparent: true,
+    transparent: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#00000000',
+    backgroundColor: '#030417',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -692,6 +692,25 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
   mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.on('focus', () => mainWindow?.webContents.send('window-focus-changed', true));
+  mainWindow.on('blur', () => mainWindow?.webContents.send('window-focus-changed', false));
+  mainWindow.on('minimize', () => mainWindow?.webContents.send('window-focus-changed', false));
+  mainWindow.on('maximize', () => mainWindow?.webContents.send('window-maximized-changed', true));
+  mainWindow.on('unmaximize', () => mainWindow?.webContents.send('window-maximized-changed', false));
+  mainWindow.on('enter-full-screen', () => mainWindow?.webContents.send('fullscreen-changed', true));
+  mainWindow.on('leave-full-screen', () => {
+    const bounds = windowedBounds;
+    const restoreMaximized = wasMaximizedBeforeFullscreen;
+    windowedBounds = null;
+    wasMaximizedBeforeFullscreen = false;
+    // Restore after Windows has finished leaving fullscreen; restoring before
+    // that transition completes can leave an oversized black client area.
+    setTimeout(() => {
+      if (mainWindow && restoreMaximized) mainWindow.maximize();
+      else if (mainWindow && bounds) mainWindow.setBounds(bounds);
+      mainWindow?.webContents.send('fullscreen-changed', false);
+    }, 50);
+  });
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.executeJavaScript(`
       navigator.mediaSession.setActionHandler('play',          () => window.dispatchEvent(new Event('media-play-pause')));
@@ -700,6 +719,8 @@ function createWindow() {
       navigator.mediaSession.setActionHandler('previoustrack', () => window.dispatchEvent(new Event('media-prev')));
       navigator.mediaSession.setActionHandler('shuffle', null);
     `).catch(() => {});
+    mainWindow.webContents.send('window-focus-changed', mainWindow.isFocused() && !mainWindow.isMinimized());
+    mainWindow.webContents.send('window-maximized-changed', mainWindow.isMaximized());
   });
   mainWindow.on('closed', () => { mainWindow = null; });
 }
@@ -834,30 +855,30 @@ ipcMain.handle('path-to-url', (event, filePath) => {
 // Window controls
 ipcMain.on('win-minimize', () => mainWindow?.minimize());
 ipcMain.on('win-close',    () => mainWindow?.close());
+ipcMain.on('win-toggle-maximize', () => {
+  if (!mainWindow || mainWindow.isFullScreen()) return;
+  if (mainWindow.isMaximized()) mainWindow.unmaximize();
+  else mainWindow.maximize();
+});
+ipcMain.on('win-set-fullscreen', (event, enabled) => {
+  if (!mainWindow) return;
+
+  if (enabled) {
+    if (mainWindow.isFullScreen()) return;
+    windowedBounds = mainWindow.getBounds();
+    wasMaximizedBeforeFullscreen = mainWindow.isMaximized();
+    mainWindow.setFullScreen(true);
+  } else if (mainWindow.isFullScreen()) {
+    mainWindow.setFullScreen(false);
+  }
+});
 ipcMain.on('win-set-width', (event, w) => {
   if (!mainWindow) return;
+  const target = Math.max(PANEL_W, Number(w) || PANEL_W);
+  // The queue needs room for both panes; the compact player can be narrower.
+  mainWindow.setMinimumSize(target <= PANEL_W ? PANEL_W : 750, 600);
   const [, h] = mainWindow.getSize();
-  const start  = mainWindow.getSize()[0];
-  const target = w;
-  const dur    = 400;
-  const steps  = 20;
-  const interval = dur / steps;
-  let step = 0;
-
-  const timer = setInterval(() => {
-    step++;
-    const t = step / steps;
-    const ease = 1 - Math.pow(1 - t, 3);
-    const cur = Math.round(start + (target - start) * ease);
-    mainWindow?.setSize(cur, h, false);
-
-    if (step >= steps) {
-      clearInterval(timer);
-      mainWindow?.setSize(target, h, false);
-      mainWindow?.setMinimumSize(target, h);
-      mainWindow?.setMaximumSize(target, h);
-    }
-  }, interval);
+  mainWindow.setSize(target, h, false);
 });
 
 ipcMain.handle('get-cover-base64', async (event, coverPath) => {
