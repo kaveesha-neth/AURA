@@ -10,7 +10,7 @@ Aura is a modern, offline-first music player for people who want a beautiful loc
 ![Aura Music Player screenshot](docs/screenshots/aura-main.png)
 
 <!-- Fullscreen screenshot placeholder: add docs/screenshots/aura-full-screen.png, then uncomment the line below. -->
-<!-- ![Aura fullscreen player](docs/screenshots/aura-full-screen.png) -->
+![Aura fullscreen player](docs/screenshots/aura-full-screen.png)
 
 
 </div>
