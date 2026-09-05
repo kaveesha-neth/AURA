@@ -450,6 +450,36 @@ to {
   animation: fadeUp 0.6s var(--expo) 0.3s both;
 }
 
+.player-utility-btn {
+  width: 30px;
+  height: 30px;
+  align-self: flex-end;
+  margin: -10px 2px -4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.15s var(--spring);
+}
+
+.player-utility-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.player-utility-btn:hover {
+  color: var(--text-1);
+  background: transparent;
+}
+
+.player-utility-btn:active {
+  transform: scale(0.9);
+}
+
 .ctrl-btn {
   background: none;
   border: none;
@@ -492,10 +522,6 @@ to {
 .icon-btn.active .btn-dot {
   opacity: 1;
   transform: translateX(-50%) scale(1);
-}
-
-#btn-reshuffle[hidden] {
-  display: none;
 }
 
 .btn-dot {
@@ -2761,7 +2787,9 @@ from {
 #fullscreen-title {
   font: 800 clamp(22px, 2vw, 32px)/1.12 "Syne", sans-serif;
   letter-spacing: -0.03em;
-  text-wrap: balance;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 #fullscreen-artist {

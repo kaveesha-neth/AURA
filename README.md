@@ -5,9 +5,12 @@
 
 ### A polished local desktop music player built with Electron.
 
-Aura is a modern, offline-first music player for people who want a beautiful local library experience without the weight of a full streaming app. It focuses on clean UI, album-art-driven visuals, synced lyrics, queue control, waveform seeking, and a compact 9:16 player layout that can expand into a full queue view when needed.
+Aura is a modern, offline-first music player for people who want a beautiful local library experience without the weight of a full streaming app. It focuses on clean UI, album-art-driven visuals, synced lyrics, persistent queue control, and an immersive fullscreen now-playing view.
 
 ![Aura Music Player screenshot](docs/screenshots/aura-main.png)
+
+<!-- Fullscreen screenshot placeholder: add docs/screenshots/aura-full-screen.png, then uncomment the line below. -->
+<!-- ![Aura fullscreen player](docs/screenshots/aura-full-screen.png) -->
 
 
 </div>
@@ -16,11 +19,13 @@ Aura is a modern, offline-first music player for people who want a beautiful loc
 
 ## Overview
 
-Aura is designed around a two-panel desktop layout:
+Aura is designed around a flexible two-panel desktop layout:
 
-- **Player panel** — a focused 9:16 music player with rotating album art, lyrics overlay, waveform, controls, volume, and equalizer.
-- **Queue panel** — a searchable, reorderable queue with library actions and current-track status.
+- **Player panel** — a focused music player with rotating album art, lyrics overlay, a lightweight timeline, controls, volume, and equalizer.
+- **Queue panel** — a searchable, sortable, reorderable queue with library actions and current-track status.
 - **Collapsible mode** — the queue can collapse so Aura becomes a compact single-panel player.
+
+- **Fullscreen now-playing mode** — a distraction-free player with blurred album-art background, static cover, full controls, and large synced lyrics.
 
 The app reads local audio files, extracts metadata and album art, builds a persistent library, caches covers and lyrics in the app data folder, and keeps the actual music files untouched.
 
@@ -43,9 +48,9 @@ The app reads local audio files, extracts metadata and album art, builds a persi
 ### Audio playback
 
 - Play, pause, previous, and next controls.
-- Shuffle mode.
+- Persistent Fisher-Yates shuffle that randomizes the actual queue, not each Next action.
 - Repeat off, repeat all, and repeat one.
-- Clickable waveform seeking.
+- Lightweight clickable timeline seeking.
 - Drag seekbar scrubbing.
 - Volume slider with mute/unmute icon.
 - Automatic skip attempt when an audio file fails to load.
@@ -57,20 +62,23 @@ The app reads local audio files, extracts metadata and album art, builds a persi
 - Remove individual tracks from the queue.
 - Clear the whole queue.
 - Drag tracks to reorder.
+- Sort by artist, album, and date added, including multi-sort priority.
 - “Play next” action for quickly moving a song after the current track.
 - Current-track visual indicator with mini equalizer animation.
 - Queue collapse/expand button that resizes the Electron window.
+- Shuffle keeps the current song first, follows the visible order sequentially, preserves Previous history, and restores original order when disabled.
 
 ### Visual design
 
-- Frameless transparent Electron window.
-- Custom titlebar and window controls.
-- Compact 9:16 player panel.
+- Frameless opaque Electron window with square corners.
+- Custom titlebar with minimize, maximize/restore, and close controls.
+- Manually resizable player and queue layout.
 - Expandable side-by-side queue panel.
-- Rotating disc-style album cover while playing.
+- Rotating disc-style album cover only while the focused window is playing.
 - Album-art glow and dynamic visual treatment.
 - Smooth transitions and polished interaction states.
 - App footer with copyright text.
+- Dedicated fullscreen launcher above the equalizer, without disrupting the playback-control layout.
 
 ### Metadata and album art
 
@@ -86,6 +94,8 @@ The app reads local audio files, extracts metadata and album art, builds a persi
 - Supports synced LRC lyrics when available.
 - Falls back to plain lyrics and estimates line timing.
 - Shows previous, current, and next lyric lines over the album-art area.
+- Gives the current compact-player lyric enough space for a wrapped second line.
+- Shows six large lyric positions in fullscreen mode, with smooth directional movement and only the current line highlighted.
 - Caches lyrics permanently in the app data folder.
 - Avoids endless lookups by stopping after four attempts.
 - Double-click the cover area to refresh lyrics for the current song.
@@ -103,6 +113,7 @@ The app reads local audio files, extracts metadata and album art, builds a persi
 
 - Media Session API metadata support.
 - Windows/media-key style actions for play/pause, next, and previous.
+- Native fullscreen entry and exit with Esc and an in-view exit action.
 - Secure preload bridge using Electron `contextBridge`.
 - Uses app data storage instead of writing generated library/cache files into the install directory.
 
@@ -145,8 +156,9 @@ Aura also checks nearby cover folders such as `covers/`, `cover/`, and `artwork/
 | `↑` | Volume up |
 | `↓` | Volume down |
 | `S` | Toggle shuffle |
+| `Shift + S` | Reshuffle upcoming songs while shuffle is active |
 | `R` | Cycle repeat mode |
-| `Esc` | Close Library modal |
+| `Esc` | Exit fullscreen mode or close the Library modal |
 
 ---
 
@@ -158,7 +170,7 @@ Aura also checks nearby cover folders such as `covers/`, `cover/`, and `artwork/
 | Runtime | Node.js |
 | UI | HTML, CSS, JavaScript |
 | Audio playback | HTMLAudioElement |
-| Waveform | Web Audio API / decoded audio data |
+| Timeline | HTML/CSS progress track |
 | Equalizer | Web Audio API `BiquadFilterNode` |
 | Metadata | `music-metadata` |
 | Packaging | `electron-builder` |

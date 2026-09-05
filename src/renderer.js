@@ -150,7 +150,6 @@ const iconPause    = document.getElementById('icon-pause');
 const btnPrev      = document.getElementById('btn-prev');
 const btnNext      = document.getElementById('btn-next');
 const btnShuffle   = document.getElementById('btn-shuffle');
-const btnReshuffle = document.getElementById('btn-reshuffle');
 const btnRepeat    = document.getElementById('btn-repeat');
 const iconRepAll   = document.getElementById('icon-repeat-all');
 const iconRepOne   = document.getElementById('icon-repeat-one');
@@ -696,9 +695,9 @@ function disableShuffle() {
   const restored = shuffleState.originalOrder.map(id => byId[id]).filter(Boolean);
   // Anything added while shuffled was not part of the original snapshot.
   queue.toArray().forEach(node => { if (!restored.includes(node)) restored.push(node); });
-  const currentIndex = restored.indexOf(state.currentNode);
-  if (currentIndex > 0) rebuildQueue(restored.slice(currentIndex).concat(restored.slice(0, currentIndex)));
-  else rebuildQueue(restored);
+  // Put the visible queue back at its genuine original first track. The current
+  // song keeps playing in place instead of forcing the queue to start from it.
+  rebuildQueue(restored);
   state.shuffle = false;
   shuffleState.originalOrder = [];
   shuffleState.history = [];
@@ -1332,7 +1331,6 @@ btnShuffle.addEventListener('click',()=>{
   else enableShuffle();
   btnShuffle.classList.toggle('active', state.shuffle);
   btnShuffle.title = state.shuffle ? 'Disable shuffle' : 'Enable shuffle';
-  btnReshuffle.hidden = !state.shuffle;
 });
 btnShuffle.addEventListener('contextmenu', event => {
   event.preventDefault();
@@ -1340,7 +1338,6 @@ btnShuffle.addEventListener('contextmenu', event => {
   reshuffleUpcoming();
   btnShuffle.classList.add('active');
 });
-btnReshuffle.addEventListener('click', reshuffleUpcoming);
 btnRepeat.addEventListener('click',()=>{
   state.repeat=(state.repeat+1)%3;
   btnRepeat.classList.toggle('active',state.repeat>0);
@@ -1408,7 +1405,6 @@ libraryClearBtn?.addEventListener('click', async () => {
 btnClear.addEventListener('click',()=>{
   audio.pause();audio.src='';state.isPlaying=false;state.currentNode=null;queue.clear();
   state.shuffle=false; btnShuffle.classList.remove('active'); btnShuffle.title='Enable shuffle';
-  btnReshuffle.hidden=true;
   shuffleState.originalOrder=[]; shuffleState.history=[]; shuffleState.historyIndex=-1; shuffleState.remaining.clear();
   songTitle.textContent='No track loaded';songArtist.textContent='Add songs to get started';songAlbum.textContent='';
   setCover(null);coverWrap.classList.remove('has-song');resetLyricsOverlay();updatePlayBtn();renderQueue();
