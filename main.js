@@ -17,6 +17,7 @@ const DATA_DIR   = path.join(app.getPath('userData'), 'data');
 const COVERS_DIR = path.join(DATA_DIR, 'covers');
 const LYRICS_DIR = path.join(DATA_DIR, 'lyrics');
 const DB_FILE    = path.join(DATA_DIR, 'library.json');
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 
 const AUDIO_EXTS = ['.mp3', '.flac', '.wav', '.ogg', '.m4a', '.aac', '.opus', '.wma', '.aiff', '.aif', '.mp4', '.m4b'];
 const COVER_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.bmp'];
@@ -51,6 +52,30 @@ function isAudioFile(filePath) {
 function safeMusicPath() {
   try { return app.getPath('music'); }
   catch { return app.getPath('home'); }
+}
+
+function readSettings() {
+  try {
+    const settings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+    const delay = Number(settings?.autoFullscreenDelay);
+    const theme = ['midnight', 'oled'].includes(settings?.theme) ? settings.theme : 'midnight';
+    return { autoFullscreenDelay: [0, 120000, 300000, 600000, 900000, 1800000].includes(delay) ? delay : 300000, theme };
+  } catch {
+    return { autoFullscreenDelay: 300000, theme: 'midnight' };
+  }
+}
+
+function writeSettings(partial = {}) {
+  const current = readSettings();
+  const delay = Number(partial.autoFullscreenDelay);
+  const theme = partial.theme;
+  const next = {
+    ...current,
+    autoFullscreenDelay: [0, 120000, 300000, 600000, 900000, 1800000].includes(delay) ? delay : current.autoFullscreenDelay,
+    theme: ['midnight', 'oled'].includes(theme) ? theme : current.theme,
+  };
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(next, null, 2), 'utf8');
+  return next;
 }
 
 function statMtimeMs(filePath) {
@@ -804,6 +829,10 @@ ipcMain.handle('get-library', async () => {
   const lib = readLibrary();
   return { songs: lib.songs, folders: lib.folders, files: lib.files };
 });
+
+ipcMain.handle('get-settings', () => readSettings());
+ipcMain.handle('save-settings', (event, settings) => writeSettings(settings));
+ipcMain.handle('get-app-version', () => app.getVersion());
 
 ipcMain.handle('remove-library-folder', async (event, folderPath) => {
   const lib = readLibrary();

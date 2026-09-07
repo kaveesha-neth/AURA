@@ -26,6 +26,12 @@
       </div>
       <!-- <span id="app-name">AURA</span> -->
       <div id="win-controls">
+        <button id="btn-settings" title="Settings" aria-label="Open settings" aria-expanded="false" aria-controls="settings-popover">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <mask id="settings-gear-hole"><rect width="24" height="24" fill="white"/><circle cx="12" cy="12" r="4.15" fill="black"/></mask>
+            <g mask="url(#settings-gear-hole)"><circle cx="12" cy="12" r="8.1"/><rect x="10" y="1" width="4" height="6" rx="0.8"/><rect x="10" y="1" width="4" height="6" rx="0.8" transform="rotate(45 12 12)"/><rect x="10" y="1" width="4" height="6" rx="0.8" transform="rotate(90 12 12)"/><rect x="10" y="1" width="4" height="6" rx="0.8" transform="rotate(135 12 12)"/><rect x="10" y="1" width="4" height="6" rx="0.8" transform="rotate(180 12 12)"/><rect x="10" y="1" width="4" height="6" rx="0.8" transform="rotate(225 12 12)"/><rect x="10" y="1" width="4" height="6" rx="0.8" transform="rotate(270 12 12)"/><rect x="10" y="1" width="4" height="6" rx="0.8" transform="rotate(315 12 12)"/></g>
+          </svg>
+        </button>
         <!-- Queue toggle: "expand" arrows when queue hidden, "compress" when visible -->
         <button id="btn-queue-toggle" title="Collapse queue">
           <!-- Compress icon (queue visible → click to collapse) -->
@@ -55,6 +61,30 @@
         </button>
       </div>
     </div>
+
+    <section id="settings-popover" aria-label="Settings" aria-hidden="true">
+      <h2>Settings</h2>
+      <div class="settings-option">
+        <span>Automatic fullscreen</span>
+        <small>Enter fullscreen after inactivity</small>
+      </div>
+      <div id="auto-fullscreen-options" role="radiogroup" aria-label="Automatic fullscreen delay">
+        <button type="button" role="radio" data-auto-fullscreen-delay="0" aria-checked="false">Off</button>
+        <button type="button" role="radio" data-auto-fullscreen-delay="120000" aria-checked="false">2m</button>
+        <button type="button" role="radio" data-auto-fullscreen-delay="300000" aria-checked="true">5m</button>
+        <button type="button" role="radio" data-auto-fullscreen-delay="600000" aria-checked="false">10m</button>
+        <button type="button" role="radio" data-auto-fullscreen-delay="900000" aria-checked="false">15m</button>
+        <button type="button" role="radio" data-auto-fullscreen-delay="1800000" aria-checked="false">30m</button>
+      </div>
+      <div class="settings-option settings-theme-option">
+        <span>Theme</span>
+      </div>
+      <div id="theme-options" role="radiogroup" aria-label="Color theme">
+        <button type="button" role="radio" data-theme="midnight" aria-checked="true">Midnight</button>
+        <button type="button" role="radio" data-theme="oled" aria-checked="false">OLED</button>
+      </div>
+      <div class="settings-version" id="settings-version" aria-label="Application version"></div>
+    </section>
 
     <!-- Main layout -->
     <div id="layout">
@@ -299,6 +329,7 @@
     <!-- Fullscreen now-playing view -->
     <section id="fullscreen-player" aria-hidden="true">
       <div id="fullscreen-background"></div>
+      <div id="fullscreen-background-transition"></div>
       <div id="fullscreen-scrim"></div>
       <button id="btn-exit-fullscreen" title="Exit fullscreen (Esc)" aria-label="Exit fullscreen">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,3 3,3 3,8"/><polyline points="12,3 17,3 17,8"/><polyline points="3,12 3,17 8,17"/><polyline points="17,12 17,17 12,17"/></svg>
@@ -306,7 +337,10 @@
       </button>
       <div id="fullscreen-content">
         <aside id="fullscreen-now-playing">
-          <img id="fullscreen-cover" alt="Album cover"/>
+          <div id="fullscreen-cover-stage">
+            <img id="fullscreen-cover" alt="Album cover"/>
+            <img id="fullscreen-cover-transition" alt="" aria-hidden="true"/>
+          </div>
           <div id="fullscreen-track-meta">
             <h1 id="fullscreen-title">No track loaded</h1>
             <p id="fullscreen-artist">Choose a song to get started</p>
