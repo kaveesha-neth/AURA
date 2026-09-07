@@ -80,6 +80,10 @@ const queue = new MusicQueue();
 let isWindowFocused = document.hasFocus();
 let isFullscreenMode = false;
 let fullscreenLyricIndex = -1;
+const AUTO_FULLSCREEN_DELAYS = new Set([0, 120000, 300000, 600000, 900000, 1800000]);
+let autoFullscreenDelay = 300000;
+let autoFullscreenTimer = null;
+let lastAutoFullscreenActivity = Date.now();
 const state = {
   currentNode: null,
   isPlaying:   false,
@@ -98,9 +102,8 @@ const state = {
   },
 };
 
-// Shuffle is an ordering mode, not a random-song picker.  The linked list is
-// always the order shown in the queue; these structures only remember where
-// that order came from and how the user travelled through it.
+// Shuffle creates one fixed playback order. The linked list remains the exact
+// order shown in the queue while shuffle is on; history only tracks navigation.
 const shuffleState = {
   originalOrder: [], // node ids, captured when shuffle is enabled
   history: [],       // nodes in the order they were played
@@ -128,7 +131,9 @@ const songArtist   = document.getElementById('song-artist');
 const songAlbum    = document.getElementById('song-album');
 const fullscreenPlayer = document.getElementById('fullscreen-player');
 const fullscreenBackground = document.getElementById('fullscreen-background');
+const fullscreenBackgroundTransition = document.getElementById('fullscreen-background-transition');
 const fullscreenCover = document.getElementById('fullscreen-cover');
+const fullscreenCoverTransition = document.getElementById('fullscreen-cover-transition');
 const fullscreenTitle = document.getElementById('fullscreen-title');
 const fullscreenArtist = document.getElementById('fullscreen-artist');
 const fullscreenSeekTrack = document.getElementById('fullscreen-seek-track');
@@ -406,17 +411,44 @@ function extractAccent(img) {
 function setCover(cp) {
   if(cp){
     const url=toUrl(cp); coverImg.src=url; coverImg.style.display='block'; coverPh.style.display='none';
-    fullscreenCover.src=url;
-    fullscreenBackground.style.backgroundImage=`url("${url}")`;
     coverImg.onload=()=>extractAccent(coverImg);
     coverImg.onerror=()=>{coverImg.style.display='none';coverPh.style.display='flex';};
   } else {
     coverImg.style.display='none'; coverPh.style.display='flex';
-    fullscreenCover.removeAttribute('src');
-    fullscreenBackground.style.backgroundImage='none';
     playerBg.style.background='radial-gradient(ellipse 70% 60% at 50% 30%, rgba(167,139,250,0.06) 0%, transparent 70%)';
     coverGlow.style.background='radial-gradient(circle, rgba(167,139,250,0.25) 0%, transparent 65%)';
   }
+}
+
+let fullscreenTrackTransitionTimer;
+function setFullscreenArtwork(coverPath, animate = false, direction = 'next') {
+  const nextUrl = coverPath ? toUrl(coverPath) : '';
+  const currentUrl = fullscreenCover.getAttribute('src') || '';
+  const canAnimate = animate && currentUrl && nextUrl && currentUrl !== nextUrl;
+
+  if (!canAnimate) {
+    if (nextUrl) fullscreenCover.src = nextUrl;
+    else fullscreenCover.removeAttribute('src');
+    fullscreenBackground.style.backgroundImage = nextUrl ? `url("${nextUrl}")` : 'none';
+    fullscreenBackgroundTransition.style.backgroundImage = 'none';
+    return;
+  }
+
+  clearTimeout(fullscreenTrackTransitionTimer);
+  fullscreenCoverTransition.src = currentUrl;
+  fullscreenBackgroundTransition.style.backgroundImage = `url("${nextUrl}")`;
+  fullscreenCover.src = nextUrl;
+  fullscreenPlayer.classList.remove('track-transition', 'track-transition-previous');
+  void fullscreenPlayer.offsetWidth;
+  if (direction === 'previous') fullscreenPlayer.classList.add('track-transition-previous');
+  fullscreenPlayer.classList.add('track-transition');
+
+  fullscreenTrackTransitionTimer = setTimeout(() => {
+    fullscreenBackground.style.backgroundImage = `url("${nextUrl}")`;
+    fullscreenBackgroundTransition.style.backgroundImage = 'none';
+    fullscreenCoverTransition.removeAttribute('src');
+    fullscreenPlayer.classList.remove('track-transition', 'track-transition-previous');
+  }, 720);
 }
 
 function syncFullscreenTrack(song = state.currentNode?.song) {
@@ -485,10 +517,13 @@ function updateMediaPosition() {
   });
 }
 
-async function loadNode(node, autoplay) {
+async function loadNode(node, autoplay, direction = 'next') {
   if(!node) return;
+  const animateFullscreenChange = isFullscreenMode && state.currentNode && state.currentNode !== node;
   state.currentNode=node;
+  resetAutoFullscreenTimer();
   animateInfo(node.song); setCover(node.song.coverPath); coverWrap.classList.add('has-song');
+  setFullscreenArtwork(node.song.coverPath, animateFullscreenChange, direction);
   syncFullscreenTrack(node.song);
   updateMediaSession(node.song);
   loadLyricsForSong(node.song, false);
@@ -501,6 +536,8 @@ async function loadNode(node, autoplay) {
     try{await audio.play();state.isPlaying=true;}catch(e){console.error(e);state.isPlaying=false;}
     updatePlayBtn();
     updateQueuePlayingState();
+    if (state.isPlaying) resetAutoFullscreenTimer();
+    else clearAutoFullscreenTimer();
     triggerRipple();
   }
 }
@@ -551,12 +588,6 @@ function rebuildQueue(nodes) {
     node.prev = null; node.next = null;
     queue.appendNode(node);
   });
-}
-
-function rotateQueueTo(node) {
-  const nodes = queue.toArray();
-  const index = nodes.indexOf(node);
-  if (index > 0) rebuildQueue(nodes.slice(index).concat(nodes.slice(0, index)));
 }
 
 function fisherYates(nodes) {
@@ -637,9 +668,8 @@ function playNext(autoplay) {
     const fromHistory = shuffleState.history[shuffleState.historyIndex + 1] === node;
     if (fromHistory) shuffleState.historyIndex++;
     else recordShuffleVisit(node);
-    rotateQueueTo(node);
   }
-  loadNode(node, autoplay);
+  loadNode(node, autoplay, 'next');
   return true;
 }
 
@@ -649,9 +679,8 @@ function playPrevious(autoplay) {
 
   if (state.shuffle && node !== state.currentNode) {
     shuffleState.historyIndex--;
-    rotateQueueTo(node);
   }
-  loadNode(node, autoplay);
+  loadNode(node, autoplay, 'previous');
   return true;
 }
 
@@ -661,7 +690,6 @@ function playSpecificNode(node, autoplay) {
     const historyPosition = shuffleState.history.lastIndexOf(node);
     if (historyPosition !== -1) shuffleState.historyIndex = historyPosition;
     else recordShuffleVisit(node);
-    rotateQueueTo(node);
   }
   loadNode(node, autoplay);
   return true;
@@ -728,7 +756,6 @@ function removeNode(node) {
       songAlbum.textContent=''; setCover(null); coverWrap.classList.remove('has-song'); resetLyricsOverlay(); updatePlayBtn();
     } else {
       if (state.shuffle) {
-        rotateQueueTo(fallback);
         rememberShuffleStart(fallback);
       }
       loadNode(fallback, state.isPlaying);
@@ -898,7 +925,6 @@ function renderQueue() {
       queue.detach(node);
       if(state.currentNode) queue.insertAfter(state.currentNode, node);
       else { node.next=queue.head; if(queue.head)queue.head.prev=node;else queue.tail=node; queue.head=node; queue.map[node.id]=node; queue.size++; }
-      if (state.shuffle && state.currentNode) rotateQueueTo(state.currentNode);
       renderQueue();
       requestAnimationFrame(()=>{
         const el=queueList.querySelector(`[data-id="${node.id}"]`);
@@ -1027,10 +1053,6 @@ function setupDragReorder() {
         } else {
           if(dragNode !== queue.tail) queue.moveToEnd(dragNode);
         }
-
-        // Shuffle always presents the current song at the top, while retaining
-        // the user's newly established order for the remaining entries.
-        if (state.shuffle && state.currentNode) rotateQueueTo(state.currentNode);
 
         dragEl = null; dragNode = null; insertBeforeId = null;
         renderQueue();
@@ -1243,8 +1265,6 @@ function replaceQueueWithSongs(songs) {
 
     const current = newNodes.get(currentPath) || queue.head;
     state.currentNode = current || null;
-    if (current) rotateQueueTo(current);
-
     shuffleState.originalOrder = originalPaths.map(path => newNodes.get(path)?.id).filter(Boolean);
     shuffleState.history = historyPaths.map(path => newNodes.get(path)).filter(Boolean);
     shuffleState.historyIndex = shuffleState.history.lastIndexOf(current);
@@ -1322,6 +1342,8 @@ btnPlay.addEventListener('click',async()=>{
 
   updatePlayBtn();
   updateQueuePlayingState();
+  if (state.isPlaying) resetAutoFullscreenTimer();
+  else clearAutoFullscreenTimer();
 });
 
 btnPrev.addEventListener('click',()=>{ playPrevious(state.isPlaying); });
@@ -1432,6 +1454,85 @@ const btnExitFullscreen = document.getElementById('btn-exit-fullscreen');
 const btnMaximize = document.getElementById('btn-maximize');
 const iconMaximize = document.getElementById('icon-maximize');
 const iconRestore = document.getElementById('icon-restore');
+const btnSettings = document.getElementById('btn-settings');
+const settingsPopover = document.getElementById('settings-popover');
+const autoFullscreenOptions = document.getElementById('auto-fullscreen-options');
+const settingsVersion = document.getElementById('settings-version');
+const themeOptions = document.getElementById('theme-options');
+
+function canAutoEnterFullscreen() {
+  return autoFullscreenDelay > 0 && state.isPlaying && isWindowFocused && !isFullscreenMode;
+}
+
+function clearAutoFullscreenTimer() {
+  if (autoFullscreenTimer) clearTimeout(autoFullscreenTimer);
+  autoFullscreenTimer = null;
+}
+
+function scheduleAutoFullscreen() {
+  clearAutoFullscreenTimer();
+  if (!canAutoEnterFullscreen()) return;
+  const remaining = Math.max(0, autoFullscreenDelay - (Date.now() - lastAutoFullscreenActivity));
+  autoFullscreenTimer = setTimeout(() => {
+    autoFullscreenTimer = null;
+    if (!canAutoEnterFullscreen()) return;
+    if (Date.now() - lastAutoFullscreenActivity < autoFullscreenDelay) {
+      scheduleAutoFullscreen();
+      return;
+    }
+    setFullscreenMode(true);
+  }, remaining);
+}
+
+function resetAutoFullscreenTimer() {
+  lastAutoFullscreenActivity = Date.now();
+  scheduleAutoFullscreen();
+}
+
+function updateAutoFullscreenSetting(delay) {
+  autoFullscreenDelay = AUTO_FULLSCREEN_DELAYS.has(Number(delay)) ? Number(delay) : 300000;
+  autoFullscreenOptions?.querySelectorAll('[data-auto-fullscreen-delay]').forEach(button => {
+    const selected = Number(button.dataset.autoFullscreenDelay) === autoFullscreenDelay;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-checked', String(selected));
+  });
+  resetAutoFullscreenTimer();
+}
+
+function updateTheme(theme) {
+  const selectedTheme = ['midnight', 'oled'].includes(theme) ? theme : 'midnight';
+  root.dataset.theme = selectedTheme;
+  themeOptions?.querySelectorAll('[data-theme]').forEach(button => {
+    const selected = button.dataset.theme === selectedTheme;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-checked', String(selected));
+  });
+}
+
+function setSettingsPopover(open) {
+  const shouldOpen = Boolean(open) && !isFullscreenMode;
+  settingsPopover?.classList.toggle('open', shouldOpen);
+  settingsPopover?.setAttribute('aria-hidden', String(!shouldOpen));
+  btnSettings?.setAttribute('aria-expanded', String(shouldOpen));
+}
+
+async function initAutoFullscreenSetting() {
+  try {
+    const saved = await window.electronAPI?.getSettings?.();
+    updateAutoFullscreenSetting(saved?.autoFullscreenDelay);
+    updateTheme(saved?.theme);
+  } catch {
+    updateAutoFullscreenSetting(300000);
+    updateTheme('midnight');
+  }
+}
+
+async function initSettingsVersion() {
+  try {
+    const version = await window.electronAPI?.getAppVersion?.();
+    if (version) settingsVersion.textContent = `v${version}`;
+  } catch {}
+}
 
 function updateMaximizeButton(isMaximized) {
   iconMaximize.style.display = isMaximized ? 'none' : 'block';
@@ -1444,7 +1545,9 @@ function applyFullscreenState(enabled) {
   isFullscreenMode = enabled;
   root.classList.toggle('fullscreen-mode', enabled);
   fullscreenPlayer.setAttribute('aria-hidden', String(!enabled));
+  if (enabled) setSettingsPopover(false);
   if (enabled) {
+    setFullscreenArtwork(state.currentNode?.song?.coverPath, false);
     syncFullscreenTrack();
     updateFullscreenLyrics(lyricsCurrent.textContent);
     fullscreenSeekFill.style.width = seekFill.style.width;
@@ -1453,6 +1556,7 @@ function applyFullscreenState(enabled) {
     fullscreenTimeTotal.textContent = timeTot.textContent;
     updatePlayBtn();
   }
+  resetAutoFullscreenTimer();
 }
 
 function setFullscreenMode(enabled) {
@@ -1482,9 +1586,10 @@ audio.addEventListener('ended',()=>{
   if(state.repeat===2){audio.currentTime=0;audio.play();return;}
 
   if(playNext(true)){
-    // The queue itself was rotated by playNext, so this was a sequential advance.
+    // Playback advances through the established queue order without rearranging it.
   } else {
     state.isPlaying=false;
+    clearAutoFullscreenTimer();
     updatePlayBtn();
     updateQueuePlayingState();
   }
@@ -1496,6 +1601,7 @@ audio.addEventListener('error',e=>{console.warn(e);const n=getNextNode();if(n&&n
 // ═══════════════════════════════════════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
   if(e.code === 'Escape' && isFullscreenMode) { e.preventDefault(); setFullscreenMode(false); return; }
+  if(e.code === 'Escape' && settingsPopover?.classList.contains('open')) { e.preventDefault(); setSettingsPopover(false); return; }
   if(e.code === 'Escape' && libraryModal?.classList.contains('open')) { setLibraryModal(false); return; }
   if(e.target.tagName==='INPUT') return;
   switch(e.code){
@@ -1555,9 +1661,52 @@ window.addEventListener('media-prev',()=>btnPrev.click());
 window.addEventListener('window-focus-changed', event => {
   isWindowFocused = Boolean(event.detail);
   updatePlayBtn();
+  resetAutoFullscreenTimer();
 });
 btnFullscreen.addEventListener('click', () => setFullscreenMode(true));
 btnExitFullscreen.addEventListener('click', () => setFullscreenMode(false));
+btnSettings?.addEventListener('click', event => {
+  event.stopPropagation();
+  setSettingsPopover(!settingsPopover?.classList.contains('open'));
+});
+autoFullscreenOptions?.addEventListener('click', async event => {
+  const button = event.target.closest('[data-auto-fullscreen-delay]');
+  if (!button) return;
+  const delay = Number(button.dataset.autoFullscreenDelay);
+  updateAutoFullscreenSetting(delay);
+  try {
+    const saved = await window.electronAPI?.saveSettings?.({ autoFullscreenDelay: delay });
+    if (saved) updateAutoFullscreenSetting(saved.autoFullscreenDelay);
+  } catch (error) { console.warn('Unable to save settings', error); }
+});
+themeOptions?.addEventListener('click', async event => {
+  const button = event.target.closest('[data-theme]');
+  if (!button) return;
+  const theme = button.dataset.theme;
+  updateTheme(theme);
+  try {
+    const saved = await window.electronAPI?.saveSettings?.({ theme });
+    if (saved) updateTheme(saved.theme);
+  } catch (error) { console.warn('Unable to save theme', error); }
+});
+document.addEventListener('pointerdown', event => {
+  if (settingsPopover?.classList.contains('open') && !settingsPopover.contains(event.target) && !btnSettings?.contains(event.target)) {
+    setSettingsPopover(false);
+  }
+  resetAutoFullscreenTimer();
+}, true);
+document.addEventListener('keydown', () => resetAutoFullscreenTimer(), true);
+document.addEventListener('wheel', () => resetAutoFullscreenTimer(), { capture: true, passive: true });
+document.addEventListener('input', () => resetAutoFullscreenTimer(), true);
+let lastAutoFullscreenMousemove = 0;
+document.addEventListener('mousemove', () => {
+  const now = Date.now();
+  if (now - lastAutoFullscreenMousemove < 1000) return;
+  lastAutoFullscreenMousemove = now;
+  resetAutoFullscreenTimer();
+}, { passive: true });
+initAutoFullscreenSetting();
+initSettingsVersion();
 document.querySelectorAll('[data-fullscreen-action]').forEach(button => button.addEventListener('click', () => {
   ({ shuffle: btnShuffle, prev: btnPrev, play: btnPlay, next: btnNext, repeat: btnRepeat }[button.dataset.fullscreenAction])?.click();
 }));
