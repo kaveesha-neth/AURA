@@ -542,18 +542,28 @@ to {
   color: #dffaff;
 }
 
-.settings-theme-option {
+.settings-theme-option,
+.settings-floating-lyrics-option,
+.settings-click-through-option {
   margin-top: 15px;
 }
 
-#theme-options {
+#theme-options,
+#floating-lyrics-options,
+#floating-lyrics-click-through-options {
   display: grid;
-  grid-template-columns: 1.45fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   margin-top: 9px;
 }
 
-#theme-options button {
+#theme-options {
+  grid-template-columns: 1.45fr 1fr;
+}
+
+#theme-options button,
+#floating-lyrics-options button,
+#floating-lyrics-click-through-options button {
   min-height: 28px;
   border: 1px solid rgba(105, 125, 215, 0.26);
   border-radius: 7px;
@@ -565,16 +575,59 @@ to {
 }
 
 #theme-options button:hover,
-#theme-options button:focus-visible {
+#theme-options button:focus-visible,
+#floating-lyrics-options button:hover,
+#floating-lyrics-options button:focus-visible,
+#floating-lyrics-click-through-options button:hover,
+#floating-lyrics-click-through-options button:focus-visible {
   border-color: rgba(53, 213, 255, 0.56);
   color: var(--text-1);
   outline: none;
 }
 
-#theme-options button.selected {
+#theme-options button.selected,
+#floating-lyrics-options button.selected,
+#floating-lyrics-click-through-options button.selected {
   border-color: rgba(53, 213, 255, 0.66);
   background: rgba(53, 213, 255, 0.14);
   color: #dffaff;
+}
+
+#floating-lyrics-click-through-options button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.settings-scale-option span,
+.settings-visible-lines-option span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#floating-lyrics-scale-value {
+  color: var(--accent);
+  font: 800 10px/1 "DM Sans", sans-serif;
+}
+
+#floating-lyrics-visible-lines-value {
+  color: var(--accent);
+  font: 800 10px/1 "DM Sans", sans-serif;
+}
+
+#floating-lyrics-scale,
+#floating-lyrics-visible-lines {
+  width: 100%;
+  height: 18px;
+  margin: 8px 0 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#floating-lyrics-scale:disabled,
+#floating-lyrics-visible-lines:disabled {
+  cursor: default;
+  opacity: 0.42;
 }
 
 .settings-version {

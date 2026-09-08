@@ -5,11 +5,22 @@ const crypto = require('crypto');
 
 let mm; // music-metadata loaded lazily after app ready
 let mainWindow;
+let floatingLyricsWindow;
 let windowedBounds = null;
 let wasMaximizedBeforeFullscreen = false;
+let floatingLyricsBoundsTimer = null;
+let isQuitting = false;
+let floatingLyricsActiveLineCount = 1;
+let floatingLyricsVisibleLineCount = 6;
+let latestFloatingLyricsState = {
+  lines: ['', '', 'Lyrics will appear here', '', '', ''],
+  activeIndex: 2,
+  transition: 'none',
+};
 
 const PANEL_W = 450;
 const WIN_H   = 824;
+const FLOATING_LYRICS_BASE_WIDTH = 760;
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 const APP_ROOT   = path.join(__dirname);
@@ -54,14 +65,57 @@ function safeMusicPath() {
   catch { return app.getPath('home'); }
 }
 
+function normalizeFloatingLyricsBounds(bounds) {
+  if (!bounds || !Number.isFinite(Number(bounds.x)) || !Number.isFinite(Number(bounds.y))) return null;
+  return { x: Math.round(Number(bounds.x)), y: Math.round(Number(bounds.y)) };
+}
+
+function normalizeFloatingLyricsScale(scale) {
+  const value = Number(scale);
+  if (!Number.isFinite(value)) return 100;
+  return Math.max(10, Math.min(140, Math.round(value / 5) * 5));
+}
+
+function normalizeFloatingLyricsVisibleLineCount(lineCount) {
+  const value = Number(lineCount);
+  if (!Number.isFinite(value)) return 6;
+  return Math.max(3, Math.min(6, Math.round(value)));
+}
+
+function floatingLyricsSize(scale, activeLineCount = 1, visibleLineCount = 6) {
+  const factor = normalizeFloatingLyricsScale(scale) / 100;
+  const extraLineCount = Math.max(0, Math.min(30, Math.floor(Number(activeLineCount) || 1) - 1));
+  const baseHeight = 166 + (normalizeFloatingLyricsVisibleLineCount(visibleLineCount) - 3) * 36;
+  return {
+    width: Math.round(FLOATING_LYRICS_BASE_WIDTH * factor),
+    height: Math.round((baseHeight + extraLineCount * 36) * factor),
+  };
+}
+
 function readSettings() {
   try {
     const settings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
     const delay = Number(settings?.autoFullscreenDelay);
     const theme = ['midnight', 'oled'].includes(settings?.theme) ? settings.theme : 'midnight';
-    return { autoFullscreenDelay: [0, 120000, 300000, 600000, 900000, 1800000].includes(delay) ? delay : 300000, theme };
+    return {
+      autoFullscreenDelay: [0, 120000, 300000, 600000, 900000, 1800000].includes(delay) ? delay : 300000,
+      theme,
+      floatingLyricsEnabled: Boolean(settings?.floatingLyricsEnabled),
+      floatingLyricsClickThrough: Boolean(settings?.floatingLyricsClickThrough),
+      floatingLyricsScale: normalizeFloatingLyricsScale(settings?.floatingLyricsScale),
+      floatingLyricsVisibleLineCount: normalizeFloatingLyricsVisibleLineCount(settings?.floatingLyricsVisibleLineCount),
+      floatingLyricsBounds: normalizeFloatingLyricsBounds(settings?.floatingLyricsBounds),
+    };
   } catch {
-    return { autoFullscreenDelay: 300000, theme: 'midnight' };
+    return {
+      autoFullscreenDelay: 300000,
+      theme: 'midnight',
+      floatingLyricsEnabled: false,
+      floatingLyricsClickThrough: false,
+      floatingLyricsScale: 100,
+      floatingLyricsVisibleLineCount: 6,
+      floatingLyricsBounds: null,
+    };
   }
 }
 
@@ -69,10 +123,24 @@ function writeSettings(partial = {}) {
   const current = readSettings();
   const delay = Number(partial.autoFullscreenDelay);
   const theme = partial.theme;
+  const hasBounds = Object.prototype.hasOwnProperty.call(partial, 'floatingLyricsBounds');
   const next = {
     ...current,
     autoFullscreenDelay: [0, 120000, 300000, 600000, 900000, 1800000].includes(delay) ? delay : current.autoFullscreenDelay,
     theme: ['midnight', 'oled'].includes(theme) ? theme : current.theme,
+    floatingLyricsEnabled: typeof partial.floatingLyricsEnabled === 'boolean'
+      ? partial.floatingLyricsEnabled
+      : current.floatingLyricsEnabled,
+    floatingLyricsClickThrough: typeof partial.floatingLyricsClickThrough === 'boolean'
+      ? partial.floatingLyricsClickThrough
+      : current.floatingLyricsClickThrough,
+    floatingLyricsScale: Object.prototype.hasOwnProperty.call(partial, 'floatingLyricsScale')
+      ? normalizeFloatingLyricsScale(partial.floatingLyricsScale)
+      : current.floatingLyricsScale,
+    floatingLyricsVisibleLineCount: Object.prototype.hasOwnProperty.call(partial, 'floatingLyricsVisibleLineCount')
+      ? normalizeFloatingLyricsVisibleLineCount(partial.floatingLyricsVisibleLineCount)
+      : current.floatingLyricsVisibleLineCount,
+    floatingLyricsBounds: hasBounds ? normalizeFloatingLyricsBounds(partial.floatingLyricsBounds) : current.floatingLyricsBounds,
   };
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(next, null, 2), 'utf8');
   return next;
@@ -694,6 +762,118 @@ async function mergeAndBuildLibrary({ foldersToAdd = [], filesToAdd = [], forceR
 }
 
 // ─── Electron window ──────────────────────────────────────────────────────────
+function sendFloatingLyricsState() {
+  if (!floatingLyricsWindow || floatingLyricsWindow.isDestroyed()) return;
+  floatingLyricsWindow.webContents.send('floating-lyrics-state', latestFloatingLyricsState);
+}
+
+function applyFloatingLyricsScale(overlay, scale) {
+  if (!overlay || overlay.isDestroyed()) return;
+  const normalizedScale = normalizeFloatingLyricsScale(scale);
+  const nextSize = floatingLyricsSize(normalizedScale, floatingLyricsActiveLineCount, floatingLyricsVisibleLineCount);
+  const currentBounds = overlay.getBounds();
+  if (currentBounds.width !== nextSize.width || currentBounds.height !== nextSize.height) {
+    overlay.setBounds({
+      x: Math.round(currentBounds.x + (currentBounds.width - nextSize.width) / 2),
+      y: Math.round(currentBounds.y + (currentBounds.height - nextSize.height) / 2),
+      ...nextSize,
+    });
+  }
+  overlay.webContents.send('floating-lyrics-scale', { scale: normalizedScale });
+}
+
+function applyFloatingLyricsVisibleLineCount(overlay, lineCount, scale = readSettings().floatingLyricsScale) {
+  floatingLyricsVisibleLineCount = normalizeFloatingLyricsVisibleLineCount(lineCount);
+  if (!overlay || overlay.isDestroyed()) return;
+  overlay.webContents.send('floating-lyrics-visible-line-count', { count: floatingLyricsVisibleLineCount });
+  applyFloatingLyricsScale(overlay, scale);
+}
+
+function persistFloatingLyricsBounds() {
+  if (!floatingLyricsWindow || floatingLyricsWindow.isDestroyed()) return;
+  if (floatingLyricsBoundsTimer) clearTimeout(floatingLyricsBoundsTimer);
+  floatingLyricsBoundsTimer = setTimeout(() => {
+    floatingLyricsBoundsTimer = null;
+    if (!floatingLyricsWindow || floatingLyricsWindow.isDestroyed()) return;
+    writeSettings({ floatingLyricsBounds: floatingLyricsWindow.getBounds() });
+  }, 250);
+}
+
+function createFloatingLyricsWindow(settings = readSettings()) {
+  if (floatingLyricsWindow && !floatingLyricsWindow.isDestroyed()) return floatingLyricsWindow;
+
+  const savedBounds = normalizeFloatingLyricsBounds(settings.floatingLyricsBounds);
+  const overlaySize = floatingLyricsSize(
+    settings.floatingLyricsScale,
+    floatingLyricsActiveLineCount,
+    floatingLyricsVisibleLineCount,
+  );
+  floatingLyricsWindow = new BrowserWindow({
+    ...overlaySize,
+    ...(savedBounds || {}),
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    hasShadow: false,
+    resizable: false,
+    maximizable: false,
+    minimizable: false,
+    fullscreenable: false,
+    show: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'lyrics-overlay-preload.js'),
+    },
+  });
+
+  floatingLyricsWindow.setAlwaysOnTop(true, 'floating');
+  floatingLyricsWindow.loadFile(path.join(__dirname, 'src', 'floating-lyrics.html'));
+  floatingLyricsWindow.webContents.on('did-finish-load', () => {
+    sendFloatingLyricsState();
+    const savedSettings = readSettings();
+    applyFloatingLyricsVisibleLineCount(
+      floatingLyricsWindow,
+      savedSettings.floatingLyricsVisibleLineCount,
+      savedSettings.floatingLyricsScale,
+    );
+  });
+  floatingLyricsWindow.on('move', persistFloatingLyricsBounds);
+  floatingLyricsWindow.on('close', event => {
+    if (isQuitting) return;
+    event.preventDefault();
+    floatingLyricsWindow?.hide();
+    writeSettings({ floatingLyricsEnabled: false });
+  });
+  floatingLyricsWindow.on('closed', () => { floatingLyricsWindow = null; });
+  return floatingLyricsWindow;
+}
+
+function syncFloatingLyricsWindow(settings = readSettings()) {
+  floatingLyricsVisibleLineCount = normalizeFloatingLyricsVisibleLineCount(settings.floatingLyricsVisibleLineCount);
+  if (!settings.floatingLyricsEnabled) {
+    floatingLyricsWindow?.hide();
+    return;
+  }
+
+  const overlay = createFloatingLyricsWindow(settings);
+  if (settings.floatingLyricsClickThrough) overlay.setIgnoreMouseEvents(true, { forward: true });
+  else overlay.setIgnoreMouseEvents(false);
+  applyFloatingLyricsVisibleLineCount(overlay, settings.floatingLyricsVisibleLineCount, settings.floatingLyricsScale);
+  sendFloatingLyricsState();
+  if (!overlay.isVisible()) overlay.showInactive();
+}
+
+function destroyFloatingLyricsWindow() {
+  if (floatingLyricsBoundsTimer) clearTimeout(floatingLyricsBoundsTimer);
+  floatingLyricsBoundsTimer = null;
+  const overlay = floatingLyricsWindow;
+  floatingLyricsWindow = null;
+  if (overlay && !overlay.isDestroyed()) overlay.destroy();
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: PANEL_W * 2,
@@ -747,7 +927,10 @@ function createWindow() {
     mainWindow.webContents.send('window-focus-changed', mainWindow.isFocused() && !mainWindow.isMinimized());
     mainWindow.webContents.send('window-maximized-changed', mainWindow.isMaximized());
   });
-  mainWindow.on('closed', () => { mainWindow = null; });
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+    destroyFloatingLyricsWindow();
+  });
 }
 
 app.whenReady().then(() => {
@@ -756,10 +939,20 @@ app.whenReady().then(() => {
     cb({ path: fp });
   });
   createWindow();
+  syncFloatingLyricsWindow();
 });
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-app.on('activate', () => { if (!mainWindow) createWindow(); });
+app.on('activate', () => {
+  if (!mainWindow) {
+    createWindow();
+    syncFloatingLyricsWindow();
+  }
+});
+app.on('before-quit', () => {
+  isQuitting = true;
+  destroyFloatingLyricsWindow();
+});
 
 // ─── IPC ──────────────────────────────────────────────────────────────────────
 ipcMain.handle('scan-library', async () => {
@@ -831,8 +1024,34 @@ ipcMain.handle('get-library', async () => {
 });
 
 ipcMain.handle('get-settings', () => readSettings());
-ipcMain.handle('save-settings', (event, settings) => writeSettings(settings));
+ipcMain.handle('save-settings', (event, settings) => {
+  const saved = writeSettings(settings);
+  syncFloatingLyricsWindow(saved);
+  return saved;
+});
 ipcMain.handle('get-app-version', () => app.getVersion());
+ipcMain.on('floating-lyrics-update', (event, payload) => {
+  const lines = Array.isArray(payload?.lines)
+    ? payload.lines.slice(0, 6).map(line => String(line || ''))
+    : latestFloatingLyricsState.lines;
+  const activeIndex = Math.max(0, Math.min(lines.length - 1, Number(payload?.activeIndex) || 0));
+  latestFloatingLyricsState = {
+    lines,
+    activeIndex,
+    transition: ['forward', 'backward'].includes(payload?.transition) ? payload.transition : 'none',
+  };
+  sendFloatingLyricsState();
+});
+ipcMain.on('floating-lyrics-set-scale', (event, scale) => {
+  applyFloatingLyricsScale(floatingLyricsWindow, scale);
+});
+ipcMain.on('floating-lyrics-set-active-line-count', (event, lineCount) => {
+  floatingLyricsActiveLineCount = Math.max(1, Math.min(30, Math.floor(Number(lineCount) || 1)));
+  applyFloatingLyricsScale(floatingLyricsWindow, readSettings().floatingLyricsScale);
+});
+ipcMain.on('floating-lyrics-set-visible-line-count', (event, lineCount) => {
+  applyFloatingLyricsVisibleLineCount(floatingLyricsWindow, lineCount);
+});
 
 ipcMain.handle('remove-library-folder', async (event, folderPath) => {
   const lib = readLibrary();
