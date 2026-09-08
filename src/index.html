@@ -83,6 +83,32 @@
         <button type="button" role="radio" data-theme="midnight" aria-checked="true">Midnight</button>
         <button type="button" role="radio" data-theme="oled" aria-checked="false">OLED</button>
       </div>
+      <div class="settings-option settings-floating-lyrics-option">
+        <span>Enable Floating Lyrics</span>
+        <small>Show lyrics above other applications</small>
+      </div>
+      <div id="floating-lyrics-options" role="radiogroup" aria-label="Enable floating lyrics">
+        <button type="button" role="radio" data-floating-lyrics-enabled="false" aria-checked="true">Off</button>
+        <button type="button" role="radio" data-floating-lyrics-enabled="true" aria-checked="false">On</button>
+      </div>
+      <div class="settings-option settings-click-through-option">
+        <span>Click Through</span>
+        <small>Let clicks pass through the lyrics</small>
+      </div>
+      <div id="floating-lyrics-click-through-options" role="radiogroup" aria-label="Floating lyrics click through">
+        <button type="button" role="radio" data-floating-lyrics-click-through="false" aria-checked="true">Off</button>
+        <button type="button" role="radio" data-floating-lyrics-click-through="true" aria-checked="false">On</button>
+      </div>
+      <div class="settings-option settings-floating-lyrics-option settings-scale-option">
+        <span>Widget Scale <b id="floating-lyrics-scale-value">100%</b></span>
+        <small>Resize floating lyrics</small>
+      </div>
+      <input id="floating-lyrics-scale" type="range" min="10" max="140" step="5" value="100" aria-label="Floating lyrics widget scale"/>
+      <div class="settings-option settings-floating-lyrics-option settings-visible-lines-option">
+        <span>Visible Lines <b id="floating-lyrics-visible-lines-value">6</b></span>
+        <small>Show nearby lyric context</small>
+      </div>
+      <input id="floating-lyrics-visible-lines" type="range" min="3" max="6" step="1" value="6" aria-label="Floating lyrics visible lines"/>
       <div class="settings-version" id="settings-version" aria-label="Application version"></div>
     </section>
 
