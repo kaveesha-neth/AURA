@@ -10,17 +10,19 @@ let windowedBounds = null;
 let wasMaximizedBeforeFullscreen = false;
 let floatingLyricsBoundsTimer = null;
 let isQuitting = false;
-let floatingLyricsActiveLineCount = 1;
 let floatingLyricsVisibleLineCount = 6;
+let floatingLyricsControlsHovered = false;
 let latestFloatingLyricsState = {
   lines: ['', '', 'Lyrics will appear here', '', '', ''],
   activeIndex: 2,
   transition: 'none',
 };
+let latestFloatingLyricsPlayback = { isPlaying: false };
 
 const PANEL_W = 450;
 const WIN_H   = 824;
-const FLOATING_LYRICS_BASE_WIDTH = 760;
+const FLOATING_LYRICS_BASE_WIDTH = 840;
+const FLOATING_LYRICS_BASE_HEIGHT = 400;
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 const APP_ROOT   = path.join(__dirname);
@@ -82,13 +84,11 @@ function normalizeFloatingLyricsVisibleLineCount(lineCount) {
   return Math.max(3, Math.min(6, Math.round(value)));
 }
 
-function floatingLyricsSize(scale, activeLineCount = 1, visibleLineCount = 6) {
+function floatingLyricsSize(scale) {
   const factor = normalizeFloatingLyricsScale(scale) / 100;
-  const extraLineCount = Math.max(0, Math.min(30, Math.floor(Number(activeLineCount) || 1) - 1));
-  const baseHeight = 166 + (normalizeFloatingLyricsVisibleLineCount(visibleLineCount) - 3) * 36;
   return {
     width: Math.round(FLOATING_LYRICS_BASE_WIDTH * factor),
-    height: Math.round((baseHeight + extraLineCount * 36) * factor),
+    height: Math.round(FLOATING_LYRICS_BASE_HEIGHT * factor),
   };
 }
 
@@ -767,26 +767,37 @@ function sendFloatingLyricsState() {
   floatingLyricsWindow.webContents.send('floating-lyrics-state', latestFloatingLyricsState);
 }
 
+function sendFloatingLyricsPlaybackState() {
+  if (!floatingLyricsWindow || floatingLyricsWindow.isDestroyed()) return;
+  floatingLyricsWindow.webContents.send('floating-lyrics-playback-state', latestFloatingLyricsPlayback);
+}
+
+function applyFloatingLyricsMouseEvents(overlay, clickThrough, controlsHovered = false) {
+  if (!overlay || overlay.isDestroyed()) return;
+  const ignoreMouseEvents = Boolean(clickThrough) && !controlsHovered;
+  if (ignoreMouseEvents) overlay.setIgnoreMouseEvents(true, { forward: true });
+  else overlay.setIgnoreMouseEvents(false);
+}
+
 function applyFloatingLyricsScale(overlay, scale) {
   if (!overlay || overlay.isDestroyed()) return;
   const normalizedScale = normalizeFloatingLyricsScale(scale);
-  const nextSize = floatingLyricsSize(normalizedScale, floatingLyricsActiveLineCount, floatingLyricsVisibleLineCount);
+  const nextSize = floatingLyricsSize(normalizedScale);
   const currentBounds = overlay.getBounds();
   if (currentBounds.width !== nextSize.width || currentBounds.height !== nextSize.height) {
     overlay.setBounds({
-      x: Math.round(currentBounds.x + (currentBounds.width - nextSize.width) / 2),
-      y: Math.round(currentBounds.y + (currentBounds.height - nextSize.height) / 2),
+      x: currentBounds.x,
+      y: currentBounds.y,
       ...nextSize,
     });
   }
   overlay.webContents.send('floating-lyrics-scale', { scale: normalizedScale });
 }
 
-function applyFloatingLyricsVisibleLineCount(overlay, lineCount, scale = readSettings().floatingLyricsScale) {
+function applyFloatingLyricsVisibleLineCount(overlay, lineCount) {
   floatingLyricsVisibleLineCount = normalizeFloatingLyricsVisibleLineCount(lineCount);
   if (!overlay || overlay.isDestroyed()) return;
   overlay.webContents.send('floating-lyrics-visible-line-count', { count: floatingLyricsVisibleLineCount });
-  applyFloatingLyricsScale(overlay, scale);
 }
 
 function persistFloatingLyricsBounds() {
@@ -803,11 +814,7 @@ function createFloatingLyricsWindow(settings = readSettings()) {
   if (floatingLyricsWindow && !floatingLyricsWindow.isDestroyed()) return floatingLyricsWindow;
 
   const savedBounds = normalizeFloatingLyricsBounds(settings.floatingLyricsBounds);
-  const overlaySize = floatingLyricsSize(
-    settings.floatingLyricsScale,
-    floatingLyricsActiveLineCount,
-    floatingLyricsVisibleLineCount,
-  );
+  const overlaySize = floatingLyricsSize(settings.floatingLyricsScale);
   floatingLyricsWindow = new BrowserWindow({
     ...overlaySize,
     ...(savedBounds || {}),
@@ -833,12 +840,13 @@ function createFloatingLyricsWindow(settings = readSettings()) {
   floatingLyricsWindow.loadFile(path.join(__dirname, 'src', 'floating-lyrics.html'));
   floatingLyricsWindow.webContents.on('did-finish-load', () => {
     sendFloatingLyricsState();
+    sendFloatingLyricsPlaybackState();
     const savedSettings = readSettings();
     applyFloatingLyricsVisibleLineCount(
       floatingLyricsWindow,
       savedSettings.floatingLyricsVisibleLineCount,
-      savedSettings.floatingLyricsScale,
     );
+    applyFloatingLyricsScale(floatingLyricsWindow, savedSettings.floatingLyricsScale);
   });
   floatingLyricsWindow.on('move', persistFloatingLyricsBounds);
   floatingLyricsWindow.on('close', event => {
@@ -853,15 +861,16 @@ function createFloatingLyricsWindow(settings = readSettings()) {
 
 function syncFloatingLyricsWindow(settings = readSettings()) {
   floatingLyricsVisibleLineCount = normalizeFloatingLyricsVisibleLineCount(settings.floatingLyricsVisibleLineCount);
+  floatingLyricsControlsHovered = false;
   if (!settings.floatingLyricsEnabled) {
     floatingLyricsWindow?.hide();
     return;
   }
 
   const overlay = createFloatingLyricsWindow(settings);
-  if (settings.floatingLyricsClickThrough) overlay.setIgnoreMouseEvents(true, { forward: true });
-  else overlay.setIgnoreMouseEvents(false);
-  applyFloatingLyricsVisibleLineCount(overlay, settings.floatingLyricsVisibleLineCount, settings.floatingLyricsScale);
+  applyFloatingLyricsMouseEvents(overlay, settings.floatingLyricsClickThrough, floatingLyricsControlsHovered);
+  applyFloatingLyricsVisibleLineCount(overlay, settings.floatingLyricsVisibleLineCount);
+  applyFloatingLyricsScale(overlay, settings.floatingLyricsScale);
   sendFloatingLyricsState();
   if (!overlay.isVisible()) overlay.showInactive();
 }
@@ -1045,12 +1054,23 @@ ipcMain.on('floating-lyrics-update', (event, payload) => {
 ipcMain.on('floating-lyrics-set-scale', (event, scale) => {
   applyFloatingLyricsScale(floatingLyricsWindow, scale);
 });
-ipcMain.on('floating-lyrics-set-active-line-count', (event, lineCount) => {
-  floatingLyricsActiveLineCount = Math.max(1, Math.min(30, Math.floor(Number(lineCount) || 1)));
-  applyFloatingLyricsScale(floatingLyricsWindow, readSettings().floatingLyricsScale);
-});
 ipcMain.on('floating-lyrics-set-visible-line-count', (event, lineCount) => {
   applyFloatingLyricsVisibleLineCount(floatingLyricsWindow, lineCount);
+});
+ipcMain.on('floating-lyrics-playback-update', (event, isPlaying) => {
+  latestFloatingLyricsPlayback = { isPlaying: Boolean(isPlaying) };
+  sendFloatingLyricsPlaybackState();
+});
+ipcMain.on('floating-lyrics-controls-hover', (event, hovered) => {
+  if (event.sender !== floatingLyricsWindow?.webContents) return;
+  floatingLyricsControlsHovered = Boolean(hovered);
+  const settings = readSettings();
+  applyFloatingLyricsMouseEvents(floatingLyricsWindow, settings.floatingLyricsClickThrough, floatingLyricsControlsHovered);
+});
+ipcMain.on('floating-lyrics-control', (event, action) => {
+  if (event.sender !== floatingLyricsWindow?.webContents) return;
+  if (!['previous', 'play-pause', 'next'].includes(action)) return;
+  mainWindow?.webContents.send('floating-lyrics-control', action);
 });
 
 ipcMain.handle('remove-library-folder', async (event, folderPath) => {

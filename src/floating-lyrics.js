@@ -2,10 +2,19 @@
 
 const root = document.getElementById('floating-lyrics');
 const lyricNodes = [...document.querySelectorAll('.floating-lyric')];
+const controls = document.getElementById('floating-lyrics-controls');
+const playButton = controls?.querySelector('[data-action="play-pause"]');
 let lastStateKey = '';
-let lastActiveLineCount = 1;
 let visibleLineCount = 6;
 let latestLyricsState = null;
+let controlsHovered = false;
+
+function setControlsHovered(hovered) {
+  const nextHovered = Boolean(hovered);
+  if (nextHovered === controlsHovered) return;
+  controlsHovered = nextHovered;
+  window.floatingLyricsAPI?.setControlsHover?.(controlsHovered);
+}
 
 function splitActiveLyric(text) {
   const words = String(text || '').trim().split(/\s+/).filter(Boolean);
@@ -42,11 +51,6 @@ function renderLyrics(state = {}) {
     node.classList.toggle('current', index === activeIndex);
   });
 
-  if (activeLyricLines.length !== lastActiveLineCount) {
-    lastActiveLineCount = activeLyricLines.length;
-    window.floatingLyricsAPI?.setActiveLineCount?.(lastActiveLineCount);
-  }
-
   root.classList.remove('transition-forward', 'transition-backward');
   if (transition !== 'none') {
     void root.offsetWidth;
@@ -63,8 +67,37 @@ window.floatingLyricsAPI?.onScale(({ scale }) => {
   rootStyle.setProperty('--floating-padding-x', `${38 * factor}px`);
   rootStyle.setProperty('--floating-side-size', `${18 * factor}px`);
   rootStyle.setProperty('--floating-current-size', `${30 * factor}px`);
+  rootStyle.setProperty('--floating-control-size', `${34 * factor}px`);
+  rootStyle.setProperty('--floating-play-size', `${44 * factor}px`);
+  rootStyle.setProperty('--floating-controls-gap', `${14 * factor}px`);
+  rootStyle.setProperty('--floating-controls-margin', `${4 * factor}px`);
 });
 window.floatingLyricsAPI?.onVisibleLineCount(({ count }) => {
   visibleLineCount = Math.max(3, Math.min(lyricNodes.length, Number(count) || lyricNodes.length));
   if (latestLyricsState) renderLyrics(latestLyricsState);
+});
+window.floatingLyricsAPI?.onPlaybackState(state => {
+  const isPlaying = Boolean(state?.isPlaying);
+  if (playButton) {
+    playButton.classList.toggle('is-playing', isPlaying);
+    playButton.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+    playButton.title = isPlaying ? 'Pause' : 'Play';
+  }
+});
+
+controls?.addEventListener('pointerenter', () => setControlsHovered(true));
+controls?.addEventListener('pointerleave', () => setControlsHovered(false));
+controls?.addEventListener('click', event => {
+  const button = event.target.closest('[data-action]');
+  if (!button) return;
+  event.preventDefault();
+  window.floatingLyricsAPI?.controlPlayback?.(button.dataset.action);
+});
+document.addEventListener('mousemove', event => {
+  if (!controls) return;
+  const bounds = controls.getBoundingClientRect();
+  setControlsHovered(
+    event.clientX >= bounds.left && event.clientX <= bounds.right
+    && event.clientY >= bounds.top && event.clientY <= bounds.bottom,
+  );
 });

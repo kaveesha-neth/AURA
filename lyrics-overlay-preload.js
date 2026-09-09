@@ -13,5 +13,10 @@ contextBridge.exposeInMainWorld('floatingLyricsAPI', {
     if (typeof callback !== 'function') return;
     ipcRenderer.on('floating-lyrics-visible-line-count', (_event, lineCount) => callback(lineCount));
   },
-  setActiveLineCount: (count) => ipcRenderer.send('floating-lyrics-set-active-line-count', count),
+  onPlaybackState: (callback) => {
+    if (typeof callback !== 'function') return;
+    ipcRenderer.on('floating-lyrics-playback-state', (_event, state) => callback(state));
+  },
+  setControlsHover: (hovered) => ipcRenderer.send('floating-lyrics-controls-hover', hovered),
+  controlPlayback: (action) => ipcRenderer.send('floating-lyrics-control', action),
 });

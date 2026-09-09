@@ -581,6 +581,7 @@ function updatePlayBtn() {
     fullscreenIconPlay.hidden = state.isPlaying;
     fullscreenIconPause.hidden = !state.isPlaying;
   }
+  window.electronAPI?.updateFloatingLyricsPlayback?.(state.isPlaying);
 }
 function updateQueuePlayingState() {
   const active = queueList.querySelector('.q-item.active');
@@ -1662,6 +1663,8 @@ btnQueueToggle.addEventListener('click', () => setQueueVisible(!queueVisible));
 // ═══════════════════════════════════════════════════════════════════════════════
 audio.addEventListener('timeupdate',updateSeek);
 audio.addEventListener('loadedmetadata',()=>{timeTot.textContent=fmtTime(audio.duration);fullscreenTimeTotal.textContent=fmtTime(audio.duration);});
+audio.addEventListener('play', () => window.electronAPI?.updateFloatingLyricsPlayback?.(true));
+audio.addEventListener('pause', () => window.electronAPI?.updateFloatingLyricsPlayback?.(false));
 audio.addEventListener('ended',()=>{
   if(state.repeat===2){audio.currentTime=0;audio.play();return;}
 
@@ -1738,6 +1741,9 @@ else{hideLoading();console.warn('No electronAPI');}
 window.addEventListener('media-play-pause',()=>btnPlay.click());
 window.addEventListener('media-next',()=>btnNext.click());
 window.addEventListener('media-prev',()=>btnPrev.click());
+window.addEventListener('floating-lyrics-control', event => {
+  ({ previous: btnPrev, 'play-pause': btnPlay, next: btnNext }[event.detail])?.click();
+});
 window.addEventListener('window-focus-changed', event => {
   isWindowFocused = Boolean(event.detail);
   updatePlayBtn();
