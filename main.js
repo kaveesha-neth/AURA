@@ -12,6 +12,7 @@ let floatingLyricsBoundsTimer = null;
 let isQuitting = false;
 let floatingLyricsVisibleLineCount = 6;
 let floatingLyricsControlsHovered = false;
+let isMainWindowFullscreen = false;
 let latestFloatingLyricsState = {
   lines: ['', '', 'Lyrics will appear here', '', '', ''],
   activeIndex: 2,
@@ -862,7 +863,7 @@ function createFloatingLyricsWindow(settings = readSettings()) {
 function syncFloatingLyricsWindow(settings = readSettings()) {
   floatingLyricsVisibleLineCount = normalizeFloatingLyricsVisibleLineCount(settings.floatingLyricsVisibleLineCount);
   floatingLyricsControlsHovered = false;
-  if (!settings.floatingLyricsEnabled) {
+  if (!settings.floatingLyricsEnabled || isMainWindowFullscreen) {
     floatingLyricsWindow?.hide();
     return;
   }
@@ -911,7 +912,11 @@ function createWindow() {
   mainWindow.on('minimize', () => mainWindow?.webContents.send('window-focus-changed', false));
   mainWindow.on('maximize', () => mainWindow?.webContents.send('window-maximized-changed', true));
   mainWindow.on('unmaximize', () => mainWindow?.webContents.send('window-maximized-changed', false));
-  mainWindow.on('enter-full-screen', () => mainWindow?.webContents.send('fullscreen-changed', true));
+  mainWindow.on('enter-full-screen', () => {
+    isMainWindowFullscreen = true;
+    syncFloatingLyricsWindow();
+    mainWindow?.webContents.send('fullscreen-changed', true);
+  });
   mainWindow.on('leave-full-screen', () => {
     const bounds = windowedBounds;
     const restoreMaximized = wasMaximizedBeforeFullscreen;
@@ -922,6 +927,8 @@ function createWindow() {
     setTimeout(() => {
       if (mainWindow && restoreMaximized) mainWindow.maximize();
       else if (mainWindow && bounds) mainWindow.setBounds(bounds);
+      isMainWindowFullscreen = false;
+      syncFloatingLyricsWindow();
       mainWindow?.webContents.send('fullscreen-changed', false);
     }, 50);
   });
@@ -938,6 +945,7 @@ function createWindow() {
   });
   mainWindow.on('closed', () => {
     mainWindow = null;
+    isMainWindowFullscreen = false;
     destroyFloatingLyricsWindow();
   });
 }
