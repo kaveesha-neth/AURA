@@ -17,6 +17,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  getUpdateState: () => ipcRenderer.invoke('get-update-state'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
   updateFloatingLyrics: (state) => ipcRenderer.send('floating-lyrics-update', state),
   updateFloatingLyricsPlayback: (isPlaying) => ipcRenderer.send('floating-lyrics-playback-update', isPlaying),
   setFloatingLyricsScale: (scale) => ipcRenderer.send('floating-lyrics-set-scale', scale),
@@ -40,6 +43,9 @@ ipcRenderer.on('fullscreen-changed', (event, isFullscreen) => {
 });
 ipcRenderer.on('window-maximized-changed', (event, isMaximized) => {
   window.dispatchEvent(new CustomEvent('window-maximized-changed', { detail: isMaximized }));
+});
+ipcRenderer.on('update-state', (event, state) => {
+  window.dispatchEvent(new CustomEvent('update-state', { detail: state }));
 });
 ipcRenderer.on('floating-lyrics-control', (event, action) => {
   window.dispatchEvent(new CustomEvent('floating-lyrics-control', { detail: action }));

@@ -19,6 +19,15 @@ let latestFloatingLyricsState = {
   transition: 'none',
 };
 let latestFloatingLyricsPlayback = { isPlaying: false };
+let updateCheckInFlight = false;
+let updaterConfigured = false;
+let updateCheckTimer = null;
+let autoUpdater = null;
+let updateState = {
+  status: 'idle',
+  version: null,
+  percent: 0,
+};
 
 const PANEL_W = 450;
 const WIN_H   = 824;
@@ -91,6 +100,78 @@ function floatingLyricsSize(scale) {
     width: Math.round(FLOATING_LYRICS_BASE_WIDTH * factor),
     height: Math.round(FLOATING_LYRICS_BASE_HEIGHT * factor),
   };
+}
+
+function getUpdateState() {
+  return { ...updateState };
+}
+
+function sendUpdateState() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send('update-state', getUpdateState());
+}
+
+function setUpdateState(next) {
+  updateState = { ...updateState, ...next };
+  sendUpdateState();
+}
+
+function configureAutoUpdater() {
+  if (!app.isPackaged || updaterConfigured) return;
+  try {
+    ({ autoUpdater } = require('electron-updater'));
+  } catch (error) {
+    console.warn('[autoUpdater] unavailable', error?.message || error);
+    return;
+  }
+
+  updaterConfigured = true;
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = false;
+  autoUpdater.allowPrerelease = false;
+
+  autoUpdater.on('checking-for-update', () => {
+    setUpdateState({ status: 'checking', version: null, percent: 0 });
+  });
+  autoUpdater.on('update-available', info => {
+    setUpdateState({ status: 'available', version: info.version, percent: 0 });
+  });
+  autoUpdater.on('update-not-available', () => {
+    setUpdateState({ status: 'idle', version: null, percent: 0 });
+  });
+  autoUpdater.on('download-progress', progress => {
+    setUpdateState({
+      status: 'downloading',
+      percent: Math.max(0, Math.min(100, Math.round(Number(progress.percent) || 0))),
+    });
+  });
+  autoUpdater.on('update-downloaded', info => {
+    setUpdateState({ status: 'downloaded', version: info.version || updateState.version, percent: 100 });
+  });
+  autoUpdater.on('error', error => {
+    console.warn('[autoUpdater]', error?.message || error);
+    setUpdateState({ status: 'error', percent: 0 });
+  });
+
+  // Let Aura finish rendering before performing a silent network request.
+  updateCheckTimer = setTimeout(() => {
+    updateCheckTimer = null;
+    void checkForUpdates();
+  }, 3500);
+}
+
+async function checkForUpdates() {
+  if (!app.isPackaged || !updaterConfigured || updateCheckInFlight) return getUpdateState();
+  updateCheckInFlight = true;
+  try {
+    await autoUpdater.checkForUpdates();
+  } catch (error) {
+    console.warn('[checkForUpdates]', error?.message || error);
+    setUpdateState({ status: 'error', percent: 0 });
+  } finally {
+    updateCheckInFlight = false;
+  }
+  return getUpdateState();
 }
 
 function readSettings() {
@@ -960,6 +1041,7 @@ app.whenReady().then(() => {
   });
   createWindow();
   syncFloatingLyricsWindow();
+  configureAutoUpdater();
 });
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
@@ -971,6 +1053,7 @@ app.on('activate', () => {
 });
 app.on('before-quit', () => {
   isQuitting = true;
+  if (updateCheckTimer) clearTimeout(updateCheckTimer);
   destroyFloatingLyricsWindow();
 });
 
@@ -1050,6 +1133,25 @@ ipcMain.handle('save-settings', (event, settings) => {
   return saved;
 });
 ipcMain.handle('get-app-version', () => app.getVersion());
+ipcMain.handle('get-update-state', () => getUpdateState());
+ipcMain.handle('download-update', async () => {
+  if (!app.isPackaged || updateState.status !== 'available') return getUpdateState();
+
+  try {
+    setUpdateState({ status: 'downloading', percent: 0 });
+    await autoUpdater.downloadUpdate();
+  } catch (error) {
+    console.warn('[downloadUpdate]', error?.message || error);
+    setUpdateState({ status: 'error', percent: 0 });
+  }
+  return getUpdateState();
+});
+ipcMain.handle('install-update', () => {
+  if (!app.isPackaged || updateState.status !== 'downloaded') return false;
+  isQuitting = true;
+  setImmediate(() => autoUpdater.quitAndInstall(false, true));
+  return true;
+});
 ipcMain.on('floating-lyrics-update', (event, payload) => {
   const lines = Array.isArray(payload?.lines)
     ? payload.lines.slice(0, 6).map(line => String(line || ''))
