@@ -1484,6 +1484,9 @@ const btnMaximize = document.getElementById('btn-maximize');
 const iconMaximize = document.getElementById('icon-maximize');
 const iconRestore = document.getElementById('icon-restore');
 const btnSettings = document.getElementById('btn-settings');
+const btnUpdate = document.getElementById('btn-update');
+const iconUpdateDownload = document.getElementById('icon-update-download');
+const iconUpdateRestart = document.getElementById('icon-update-restart');
 const settingsPopover = document.getElementById('settings-popover');
 const autoFullscreenOptions = document.getElementById('auto-fullscreen-options');
 const settingsVersion = document.getElementById('settings-version');
@@ -1494,6 +1497,43 @@ const floatingLyricsScaleInput = document.getElementById('floating-lyrics-scale'
 const floatingLyricsScaleValue = document.getElementById('floating-lyrics-scale-value');
 const floatingLyricsVisibleLinesInput = document.getElementById('floating-lyrics-visible-lines');
 const floatingLyricsVisibleLinesValue = document.getElementById('floating-lyrics-visible-lines-value');
+let currentUpdateState = { status: 'idle', version: null, percent: 0 };
+
+function updateUpdateButton(nextState = {}) {
+  currentUpdateState = { ...currentUpdateState, ...nextState };
+  if (!btnUpdate) return;
+
+  const { status, version, percent } = currentUpdateState;
+  const visible = ['available', 'downloading', 'downloaded'].includes(status);
+  btnUpdate.hidden = !visible;
+  btnUpdate.disabled = status === 'downloading';
+  btnUpdate.classList.toggle('update-downloading', status === 'downloading');
+  btnUpdate.classList.toggle('update-ready', status === 'downloaded');
+  btnUpdate.style.setProperty('--update-progress', `${Math.max(0, Math.min(100, Number(percent) || 0))}%`);
+  iconUpdateDownload.hidden = status === 'downloaded';
+  iconUpdateRestart.hidden = status !== 'downloaded';
+
+  const versionLabel = version ? `Aura v${version}` : 'the latest Aura update';
+  if (status === 'available') {
+    btnUpdate.title = `Download ${versionLabel}`;
+    btnUpdate.setAttribute('aria-label', `Download ${versionLabel}`);
+  } else if (status === 'downloading') {
+    btnUpdate.title = `Downloading ${versionLabel}: ${Math.round(Number(percent) || 0)}%`;
+    btnUpdate.setAttribute('aria-label', btnUpdate.title);
+  } else if (status === 'downloaded') {
+    btnUpdate.title = `Restart Aura to install ${versionLabel}`;
+    btnUpdate.setAttribute('aria-label', btnUpdate.title);
+  }
+}
+
+async function initUpdateButton() {
+  try {
+    const savedState = await window.electronAPI?.getUpdateState?.();
+    if (savedState) updateUpdateButton(savedState);
+  } catch (error) {
+    console.warn('Unable to read update state', error);
+  }
+}
 
 function canAutoEnterFullscreen() {
   return autoFullscreenDelay > 0 && state.isPlaying && isWindowFocused && !isFullscreenMode;
@@ -1749,6 +1789,7 @@ window.addEventListener('media-prev',()=>btnPrev.click());
 window.addEventListener('floating-lyrics-control', event => {
   ({ previous: btnPrev, 'play-pause': btnPlay, next: btnNext }[event.detail])?.click();
 });
+window.addEventListener('update-state', event => updateUpdateButton(event.detail));
 window.addEventListener('window-focus-changed', event => {
   isWindowFocused = Boolean(event.detail);
   updatePlayBtn();
@@ -1756,6 +1797,16 @@ window.addEventListener('window-focus-changed', event => {
 });
 btnFullscreen.addEventListener('click', () => setFullscreenMode(true));
 btnExitFullscreen.addEventListener('click', () => setFullscreenMode(false));
+btnUpdate?.addEventListener('click', async () => {
+  try {
+    if (currentUpdateState.status === 'available') {
+      const nextState = await window.electronAPI?.downloadUpdate?.();
+      if (nextState) updateUpdateButton(nextState);
+    } else if (currentUpdateState.status === 'downloaded') {
+      await window.electronAPI?.installUpdate?.();
+    }
+  } catch (error) { console.warn('Unable to apply update action', error); }
+});
 btnFloatingLyrics?.addEventListener('click', async () => {
   const enabled = !floatingLyricsEnabled;
   updateFloatingLyricsSettings({ floatingLyricsEnabled: enabled });
@@ -1849,6 +1900,7 @@ document.addEventListener('mousemove', () => {
   resetAutoFullscreenTimer();
 }, { passive: true });
 initSettingsVersion();
+initUpdateButton();
 document.querySelectorAll('[data-fullscreen-action]').forEach(button => button.addEventListener('click', () => {
   ({ shuffle: btnShuffle, prev: btnPrev, play: btnPlay, next: btnNext, repeat: btnRepeat }[button.dataset.fullscreenAction])?.click();
 }));
