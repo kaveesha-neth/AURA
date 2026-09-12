@@ -1,0 +1,159 @@
+:root {
+  color-scheme: dark;
+  --floating-gap: 8px;
+  --floating-padding-y: 20px;
+  --floating-padding-x: 38px;
+  --floating-side-size: 18px;
+  --floating-current-size: 30px;
+  --floating-control-size: 34px;
+  --floating-play-size: 44px;
+  --floating-controls-gap: 14px;
+  --floating-controls-margin: 4px;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
+  -webkit-app-region: drag;
+  cursor: grab;
+  user-select: none;
+}
+
+body:active {
+  cursor: grabbing;
+}
+
+#floating-lyrics {
+  box-sizing: border-box;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--floating-gap);
+  padding: var(--floating-padding-y) var(--floating-padding-x);
+  overflow: hidden;
+  text-align: center;
+  font-family: Inter, "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+
+.floating-lyric {
+  min-height: 1.18em;
+  max-height: 2.36em;
+  margin: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.34);
+  font-size: var(--floating-side-size);
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  opacity: 0.66;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.64);
+  text-overflow: ellipsis;
+  transition: color 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.floating-lyric.current {
+  max-height: none;
+  overflow: visible;
+  color: #fff;
+  font-size: var(--floating-current-size);
+  font-weight: 900;
+  white-space: pre-line;
+  opacity: 1;
+  /* text-shadow: 0 2px 4px rgba(0, 0, 0, 0.98), 0 7px 26px rgba(0, 0, 0, 0.92); */
+}
+
+.floating-lyric:empty {
+  visibility: hidden;
+}
+
+#floating-lyrics-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--floating-controls-gap);
+  margin-top: var(--floating-controls-margin);
+  -webkit-app-region: no-drag;
+}
+
+.floating-lyrics-control {
+  display: grid;
+  width: var(--floating-control-size);
+  height: var(--floating-control-size);
+  padding: 0;
+  place-items: center;
+  border: 1.25px solid rgba(255, 255, 255, 0.68);
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.floating-lyrics-control:hover,
+.floating-lyrics-control:focus-visible {
+  border-color: #fff;
+  color: #fff;
+  outline: none;
+  transform: scale(1.06);
+}
+
+.floating-lyrics-control:active {
+  transform: scale(0.95);
+}
+
+.floating-lyrics-control svg {
+  width: 64%;
+  height: 64%;
+  fill: currentColor;
+}
+
+.floating-lyrics-play {
+  width: var(--floating-play-size);
+  height: var(--floating-play-size);
+  border-color: rgba(255, 255, 255, 0.88);
+  color: #fff;
+}
+
+.floating-icon-pause {
+  display: none;
+}
+
+.floating-lyrics-play.is-playing .floating-icon-play {
+  display: none;
+}
+
+.floating-lyrics-play.is-playing .floating-icon-pause {
+  display: block;
+}
+
+#floating-lyrics.transition-forward .floating-lyric {
+  animation: floating-lyric-forward 340ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+#floating-lyrics.transition-backward .floating-lyric {
+  animation: floating-lyric-backward 340ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+#floating-lyrics.transition-forward .floating-lyric.current,
+#floating-lyrics.transition-backward .floating-lyric.current {
+  animation-duration: 390ms;
+}
+
+@keyframes floating-lyric-forward {
+  from { opacity: 0; transform: translateY(18px); }
+  to { transform: translateY(0); }
+}
+
+@keyframes floating-lyric-backward {
+  from { opacity: 0; transform: translateY(-18px); }
+  to { transform: translateY(0); }
+}

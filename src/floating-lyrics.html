@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AURA Floating Lyrics</title>
+  <link rel="stylesheet" href="floating-lyrics.css"/>
+</head>
+<body>
+  <main id="floating-lyrics" aria-live="polite" aria-label="Floating lyrics">
+    <p class="floating-lyric" data-slot="0"></p>
+    <p class="floating-lyric" data-slot="1"></p>
+    <p class="floating-lyric current" data-slot="2">Lyrics will appear here</p>
+    <p class="floating-lyric" data-slot="3"></p>
+    <p class="floating-lyric" data-slot="4"></p>
+    <p class="floating-lyric" data-slot="5"></p>
+    <div id="floating-lyrics-controls" aria-label="Playback controls">
+      <button class="floating-lyrics-control" type="button" data-action="previous" aria-label="Previous track" title="Previous track">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 16l12-9v18zm11 0 12-9v18z"/></svg>
+      </button>
+      <button class="floating-lyrics-control floating-lyrics-play" type="button" data-action="play-pause" aria-label="Play or pause" title="Play or pause">
+        <svg class="floating-icon-play" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 7l15 9-15 9z"/></svg>
+        <svg class="floating-icon-pause" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 7h5v18H9zm9 0h5v18h-5z"/></svg>
+      </button>
+      <button class="floating-lyrics-control" type="button" data-action="next" aria-label="Next track" title="Next track">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M28 16L16 7v18zm-11 0L5 7v18z"/></svg>
+      </button>
+    </div>
+  </main>
+  <script src="floating-lyrics.js"></script>
+</body>
+</html>
