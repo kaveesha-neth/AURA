@@ -2,11 +2,17 @@
   "name": "aura-music-player",
   "version": "2.3.3",
   "description": "Aura - Local Music Player",
+  "author": "Kaveesha Nethmal",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaveesha-neth/AURA.git"
+  },
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "build-win": "electron-builder --win --x64",
+    "build-win": "electron-builder --win --x64 --publish never",
+    "release-win": "electron-builder --win --x64 --publish always",
     "build-mac": "electron-builder --mac",
     "build-linux": "electron-builder --linux"
   },
@@ -17,6 +23,14 @@
   "build": {
     "appId": "com.aura.musicplayer",
     "productName": "Aura",
+    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "publish": {
+      "provider": "github",
+      "owner": "kaveesha-neth",
+      "repo": "AURA",
+      "releaseType": "release",
+      "tagNamePrefix": "v"
+    },
     "directories": {
       "output": "dist"
     },
@@ -33,6 +47,7 @@
     }
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "music-metadata": "^7.14.0"
   }
 }

@@ -465,6 +465,36 @@ to {
   background: rgba(63, 92, 255, 0.12) !important;
 }
 
+#btn-update[hidden] {
+  display: none;
+}
+
+#btn-update:not([hidden]) {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+#btn-update:not([hidden]):hover {
+  color: var(--accent2);
+  border-color: color-mix(in srgb, var(--accent2) 58%, transparent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+#btn-update.update-downloading {
+  --update-progress: 0%;
+  color: var(--text-1);
+  border-color: color-mix(in srgb, var(--accent) 54%, transparent);
+  background: conic-gradient(var(--accent) var(--update-progress), color-mix(in srgb, var(--surface3) 82%, transparent) 0);
+  cursor: progress;
+}
+
+#btn-update.update-ready {
+  color: var(--accent2);
+  border-color: color-mix(in srgb, var(--accent2) 54%, transparent);
+  background: color-mix(in srgb, var(--accent) 17%, transparent);
+}
+
 #settings-popover {
   position: absolute;
   z-index: 80;
@@ -3458,6 +3488,24 @@ from {
   background: var(--accent-surface) !important;
 }
 
+#root[data-theme="oled"] #btn-update:not([hidden]) {
+  color: var(--accent-primary);
+  border-color: var(--border-active);
+  background: var(--accent-surface);
+}
+
+#root[data-theme="oled"] #btn-update:not([hidden]):hover,
+#root[data-theme="oled"] #btn-update.update-ready {
+  color: var(--accent-hover);
+  background: rgba(140, 143, 255, 0.17);
+}
+
+#root[data-theme="oled"] #btn-update.update-downloading {
+  color: var(--text-primary);
+  border-color: var(--border-active);
+  background: conic-gradient(var(--accent-primary) var(--update-progress), #17171e 0);
+}
+
 #root[data-theme="oled"] #seek-track,
 #root[data-theme="oled"] #vol-track,
 #root[data-theme="oled"] .eq-track,
@@ -3510,15 +3558,15 @@ from {
 }
 
 #root[data-theme="oled"] .play-btn {
-  background: var(--accent-primary);
+  background: #f7f6fb;
   color: #101019;
-  box-shadow: 0 5px 17px rgba(140, 143, 255, 0.2);
+  box-shadow: 0 5px 17px rgba(255, 255, 255, 0.18);
 }
 
 #root[data-theme="oled"] .play-btn:hover {
-  background: var(--accent-hover);
+  background: #ffffff;
   color: #101019;
-  box-shadow: 0 6px 21px rgba(140, 143, 255, 0.28), 0 0 0 4px rgba(140, 143, 255, 0.08);
+  box-shadow: 0 6px 21px rgba(255, 255, 255, 0.25), 0 0 0 4px rgba(255, 255, 255, 0.07);
 }
 
 #root[data-theme="oled"] #play-ripple { background: var(--accent-hover); }
@@ -3767,16 +3815,27 @@ from {
 #root[data-theme="oled"].fullscreen-mode #btn-exit-fullscreen:hover,
 #root[data-theme="oled"].fullscreen-mode .fullscreen-control:hover {
   background: rgba(255, 255, 255, 0.09);
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
-#root[data-theme="oled"].fullscreen-mode #fullscreen-seek-fill,
-#root[data-theme="oled"].fullscreen-mode .fullscreen-play {
+#root[data-theme="oled"].fullscreen-mode .fullscreen-control {
+  color: #f7f6fb;
+}
+
+#root[data-theme="oled"].fullscreen-mode #fullscreen-seek-fill {
   background: var(--accent-primary);
-  color: #101019;
 }
 
-#root[data-theme="oled"].fullscreen-mode .fullscreen-play:hover { background: var(--accent-hover); }
+#root[data-theme="oled"].fullscreen-mode .fullscreen-play {
+  background: #f7f6fb;
+  color: #101019;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.32), 0 0 20px rgba(255, 255, 255, 0.12);
+}
+
+#root[data-theme="oled"].fullscreen-mode .fullscreen-play:hover {
+  background: #ffffff;
+  color: #09090f;
+}
 
 #root[data-theme="oled"].fullscreen-mode .fullscreen-lyric { color: rgba(242, 241, 246, 0.3); }
 #root[data-theme="oled"].fullscreen-mode .fullscreen-lyric.current { color: var(--text-primary); }
