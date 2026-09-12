@@ -885,6 +885,9 @@ function destroyFloatingLyricsWindow() {
 }
 
 function createWindow() {
+  // The native window is visible before the renderer can apply its CSS. Match
+  // that first paint to the saved theme so OLED never flashes Midnight navy.
+  const initialTheme = readSettings().theme;
   mainWindow = new BrowserWindow({
     width: PANEL_W * 2,
     height: WIN_H,
@@ -894,7 +897,7 @@ function createWindow() {
     frame: false,
     transparent: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#030417',
+    backgroundColor: initialTheme === 'oled' ? '#050506' : '#030417',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
