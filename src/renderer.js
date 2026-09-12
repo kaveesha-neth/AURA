@@ -442,8 +442,8 @@ function setCover(cp) {
     coverImg.onerror=()=>{coverImg.style.display='none';coverPh.style.display='flex';};
   } else {
     coverImg.style.display='none'; coverPh.style.display='flex';
-    playerBg.style.background='radial-gradient(ellipse 70% 60% at 50% 30%, rgba(167,139,250,0.06) 0%, transparent 70%)';
-    coverGlow.style.background='radial-gradient(circle, rgba(167,139,250,0.25) 0%, transparent 65%)';
+    playerBg.style.background='radial-gradient(ellipse 70% 60% at 50% 30%, rgba(140,143,255,0.05) 0%, transparent 70%)';
+    coverGlow.style.background='radial-gradient(circle, rgba(140,143,255,0.16) 0%, transparent 65%)';
   }
 }
 
@@ -581,6 +581,7 @@ function updatePlayBtn() {
     fullscreenIconPlay.hidden = state.isPlaying;
     fullscreenIconPause.hidden = !state.isPlaying;
   }
+  window.electronAPI?.updateFloatingLyricsPlayback?.(state.isPlaying);
 }
 function updateQueuePlayingState() {
   const active = queueList.querySelector('.q-item.active');
@@ -1053,7 +1054,7 @@ function setupDragReorder() {
         opacity:0.85;border-radius:8px;
         background:var(--surface3);
         box-shadow:0 8px 32px rgba(0,0,0,0.5);
-        border:0.5px solid rgba(167,139,250,0.35);
+        border:0.5px solid rgba(140,143,255,0.35);
         transition:none;
       `;
       document.body.appendChild(ghost);
@@ -1476,6 +1477,7 @@ const root         = document.getElementById('root');
 const iconCompress = document.getElementById('icon-compress');
 const iconExpand   = document.getElementById('icon-expand');
 const btnQueueToggle = document.getElementById('btn-queue-toggle');
+const btnFloatingLyrics = document.getElementById('btn-floating-lyrics');
 const btnFullscreen = document.getElementById('btn-fullscreen');
 const btnExitFullscreen = document.getElementById('btn-exit-fullscreen');
 const btnMaximize = document.getElementById('btn-maximize');
@@ -1569,6 +1571,10 @@ function updateFloatingLyricsSettings(settings = {}) {
     button.classList.toggle('selected', selected);
     button.setAttribute('aria-checked', String(selected));
   });
+  btnFloatingLyrics?.classList.toggle('active', floatingLyricsEnabled);
+  btnFloatingLyrics?.setAttribute('aria-pressed', String(floatingLyricsEnabled));
+  btnFloatingLyrics?.setAttribute('aria-label', `${floatingLyricsEnabled ? 'Disable' : 'Enable'} Floating Lyrics`);
+  btnFloatingLyrics?.setAttribute('title', `${floatingLyricsEnabled ? 'Disable' : 'Enable'} Floating Lyrics`);
   floatingLyricsClickThroughOptions?.querySelectorAll('[data-floating-lyrics-click-through]').forEach(button => {
     const selected = (button.dataset.floatingLyricsClickThrough === 'true') === floatingLyricsClickThrough;
     button.classList.toggle('selected', selected);
@@ -1662,6 +1668,8 @@ btnQueueToggle.addEventListener('click', () => setQueueVisible(!queueVisible));
 // ═══════════════════════════════════════════════════════════════════════════════
 audio.addEventListener('timeupdate',updateSeek);
 audio.addEventListener('loadedmetadata',()=>{timeTot.textContent=fmtTime(audio.duration);fullscreenTimeTotal.textContent=fmtTime(audio.duration);});
+audio.addEventListener('play', () => window.electronAPI?.updateFloatingLyricsPlayback?.(true));
+audio.addEventListener('pause', () => window.electronAPI?.updateFloatingLyricsPlayback?.(false));
 audio.addEventListener('ended',()=>{
   if(state.repeat===2){audio.currentTime=0;audio.play();return;}
 
@@ -1733,11 +1741,14 @@ setupEQ();
 // INIT
 // ═══════════════════════════════════════════════════════════════════════════════
 setVolume(0.8); renderQueue(); updateSortUI();
-if(window.electronAPI) initLibrary();
+if(window.electronAPI) void initAutoFullscreenSetting().finally(initLibrary);
 else{hideLoading();console.warn('No electronAPI');}
 window.addEventListener('media-play-pause',()=>btnPlay.click());
 window.addEventListener('media-next',()=>btnNext.click());
 window.addEventListener('media-prev',()=>btnPrev.click());
+window.addEventListener('floating-lyrics-control', event => {
+  ({ previous: btnPrev, 'play-pause': btnPlay, next: btnNext }[event.detail])?.click();
+});
 window.addEventListener('window-focus-changed', event => {
   isWindowFocused = Boolean(event.detail);
   updatePlayBtn();
@@ -1745,6 +1756,14 @@ window.addEventListener('window-focus-changed', event => {
 });
 btnFullscreen.addEventListener('click', () => setFullscreenMode(true));
 btnExitFullscreen.addEventListener('click', () => setFullscreenMode(false));
+btnFloatingLyrics?.addEventListener('click', async () => {
+  const enabled = !floatingLyricsEnabled;
+  updateFloatingLyricsSettings({ floatingLyricsEnabled: enabled });
+  try {
+    const saved = await window.electronAPI?.saveSettings?.({ floatingLyricsEnabled: enabled });
+    if (saved) updateFloatingLyricsSettings(saved);
+  } catch (error) { console.warn('Unable to save floating lyrics setting', error); }
+});
 btnSettings?.addEventListener('click', event => {
   event.stopPropagation();
   setSettingsPopover(!settingsPopover?.classList.contains('open'));
@@ -1829,7 +1848,6 @@ document.addEventListener('mousemove', () => {
   lastAutoFullscreenMousemove = now;
   resetAutoFullscreenTimer();
 }, { passive: true });
-initAutoFullscreenSetting();
 initSettingsVersion();
 document.querySelectorAll('[data-fullscreen-action]').forEach(button => button.addEventListener('click', () => {
   ({ shuffle: btnShuffle, prev: btnPrev, play: btnPlay, next: btnNext, repeat: btnRepeat }[button.dataset.fullscreenAction])?.click();

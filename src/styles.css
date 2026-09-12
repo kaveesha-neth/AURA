@@ -683,19 +683,25 @@ to {
 #root[data-theme="oled"]:not(.fullscreen-mode) .eq-handle { background: linear-gradient(160deg, #19151f, #0d0d0d 52%, #050505); border-color: rgba(208, 184, 255, 0.34); }
 
 
+.player-utility-buttons {
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: -10px 2px -4px 0;
+  position: relative;
+  z-index: 3;
+}
+
 .player-utility-btn {
   width: 30px;
   height: 30px;
-  align-self: flex-end;
-  margin: -10px 2px -4px 0;
   border: 0;
   background: transparent;
   color: var(--text-3);
   display: grid;
   place-items: center;
   cursor: pointer;
-  position: relative;
-  z-index: 3;
   transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.15s var(--spring);
 }
 
@@ -707,6 +713,15 @@ to {
 .player-utility-btn:hover {
   color: var(--text-1);
   background: transparent;
+}
+
+#btn-floating-lyrics.active {
+  color: var(--accent);
+  filter: drop-shadow(0 0 4px var(--accent-gl));
+}
+
+#btn-floating-lyrics.active:hover {
+  color: var(--accent2);
 }
 
 .player-utility-btn:active {
@@ -3290,3 +3305,478 @@ from {
     display: none;
   }
 }
+
+/* ── OLED refinement: neutral-black surfaces with one restrained periwinkle system ── */
+#root[data-theme="oled"] {
+  --bg-oled: #050506;
+  --bg-surface: #0a0a0e;
+  --bg-surface-raised: #0d0d12;
+  --bg-surface-hover: #141319;
+  --bg-selected: rgba(140, 143, 255, 0.11);
+  --border-subtle: #24232c;
+  --border-hover: #363540;
+  --border-active: rgba(140, 143, 255, 0.62);
+  --text-primary: #f2f1f6;
+  --text-secondary: #96949f;
+  --text-tertiary: #706e78;
+  --text-disabled: #4f4d57;
+  --icon-default: #8a8892;
+  --icon-hover: #c0bec7;
+  --accent-primary: #8c8fff;
+  --accent-hover: #a5a7ff;
+  --accent-muted: rgba(140, 143, 255, 0.52);
+  --accent-surface: rgba(140, 143, 255, 0.11);
+  --danger: #d87888;
+
+  /* Compatibility aliases keep existing controls within the same palette. */
+  --bg: var(--bg-oled);
+  --surface: var(--bg-surface);
+  --surface2: var(--bg-surface-raised);
+  --surface3: #111117;
+  --surface4: var(--bg-surface-hover);
+  --blue-deep: #11121d;
+  --blue-royal: #5558a8;
+  --blue-bright: var(--accent-primary);
+  --blue-soft: var(--accent-hover);
+  --blue-glow: var(--accent-primary);
+  --cyan-accent: var(--accent-primary);
+  --violet-accent: var(--accent-primary);
+  --border: var(--border-subtle);
+  --border2: #2c2b35;
+  --border3: var(--border-hover);
+  --text-1: var(--text-primary);
+  --text-2: var(--text-secondary);
+  --text-3: var(--text-tertiary);
+  --accent: var(--accent-primary);
+  --accent2: var(--accent-hover);
+  --accent3: var(--accent-primary);
+  --accent-gl: rgba(140, 143, 255, 0.18);
+  --accent-gl2: rgba(140, 143, 255, 0.1);
+  --root-glow-1: rgba(140, 143, 255, 0.045);
+  --root-glow-2: rgba(140, 143, 255, 0.025);
+  --root-gradient: linear-gradient(135deg, #050506 0%, #050506 62%, #08080d 100%);
+}
+
+#root[data-theme="oled"],
+#root[data-theme="oled"] #titlebar,
+#root[data-theme="oled"] #app-footer,
+#root[data-theme="oled"] #queue-panel,
+#root[data-theme="oled"] #player-panel {
+  color: var(--text-primary);
+}
+
+#root[data-theme="oled"] {
+  background: var(--root-gradient);
+  border-color: var(--border-subtle);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.72), inset 0 0 0 1px rgba(255, 255, 255, 0.012);
+}
+
+#root[data-theme="oled"] #titlebar,
+#root[data-theme="oled"] #app-footer {
+  background: rgba(5, 5, 6, 0.94);
+  border-color: var(--border-subtle);
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] #player-panel {
+  background: linear-gradient(180deg, rgba(10, 10, 14, 0.38), rgba(5, 5, 6, 0.78));
+  border-color: var(--border-subtle);
+}
+
+#root[data-theme="oled"] #queue-panel {
+  background: linear-gradient(180deg, #0a0a0e, #050506);
+}
+
+#root[data-theme="oled"] #player-blur-overlay {
+  background: linear-gradient(180deg, transparent, rgba(5, 5, 6, 0.66));
+}
+
+#root[data-theme="oled"] #loading-overlay {
+  background: rgba(5, 5, 6, 0.97);
+  border-radius: 0;
+  backdrop-filter: none;
+}
+
+#root[data-theme="oled"] #loading-overlay::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(140, 143, 255, 0.045), transparent 34%);
+}
+
+#root[data-theme="oled"] #loading-spinner {
+  position: relative;
+  z-index: 1;
+  border-color: #25242c;
+  border-top-color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(140, 143, 255, 0.1);
+}
+
+#root[data-theme="oled"] #loading-text {
+  position: relative;
+  z-index: 1;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+#root[data-theme="oled"] #library-backdrop {
+  background: rgba(0, 0, 0, 0.82);
+}
+
+#root[data-theme="oled"] #title-icon {
+  filter: drop-shadow(0 0 4px rgba(140, 143, 255, 0.22));
+}
+
+#root[data-theme="oled"] #app-name,
+#root[data-theme="oled"] #app-footer,
+#root[data-theme="oled"] #queue-meta,
+#root[data-theme="oled"] #queue-sort-label,
+#root[data-theme="oled"] #seek-times span,
+#root[data-theme="oled"] #vol-label {
+  color: var(--text-tertiary);
+}
+
+#root[data-theme="oled"] #win-controls button {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--icon-default);
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] #win-controls button:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-hover);
+  color: var(--icon-hover);
+}
+
+#root[data-theme="oled"] #btn-queue-toggle:hover,
+#root[data-theme="oled"] #btn-settings:hover,
+#root[data-theme="oled"] #btn-settings[aria-expanded="true"] {
+  color: var(--accent-hover) !important;
+  border-color: var(--border-active) !important;
+  background: var(--accent-surface) !important;
+}
+
+#root[data-theme="oled"] #seek-track,
+#root[data-theme="oled"] #vol-track,
+#root[data-theme="oled"] .eq-track,
+#root[data-theme="oled"] #fullscreen-seek-track {
+  background: #1a1920;
+}
+
+#root[data-theme="oled"] #seek-fill,
+#root[data-theme="oled"] #vol-fill,
+#root[data-theme="oled"] .eq-track-fill,
+#root[data-theme="oled"] #fullscreen-seek-fill {
+  background: var(--accent-primary);
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] #seek-thumb,
+#root[data-theme="oled"] #vol-thumb,
+#root[data-theme="oled"] #fullscreen-seek-thumb {
+  background: var(--accent-hover);
+}
+
+#root[data-theme="oled"] .ctrl-btn,
+#root[data-theme="oled"] .player-utility-btn {
+  color: var(--icon-default);
+}
+
+#root[data-theme="oled"] .ctrl-btn:not(.play-btn):hover,
+#root[data-theme="oled"] .player-utility-btn:hover,
+#root[data-theme="oled"] .icon-btn:hover {
+  color: var(--icon-hover);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] #btn-floating-lyrics.active {
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 5px var(--accent-gl));
+}
+
+#root[data-theme="oled"] .icon-btn.active,
+#root[data-theme="oled"] .sort-pill.active svg,
+#root[data-theme="oled"] .sort-pill-dir,
+#root[data-theme="oled"] .library-tab span {
+  color: var(--accent-primary);
+}
+
+#root[data-theme="oled"] .btn-dot,
+#root[data-theme="oled"] .eq-anim span {
+  background: var(--accent-primary);
+}
+
+#root[data-theme="oled"] .play-btn {
+  background: var(--accent-primary);
+  color: #101019;
+  box-shadow: 0 5px 17px rgba(140, 143, 255, 0.2);
+}
+
+#root[data-theme="oled"] .play-btn:hover {
+  background: var(--accent-hover);
+  color: #101019;
+  box-shadow: 0 6px 21px rgba(140, 143, 255, 0.28), 0 0 0 4px rgba(140, 143, 255, 0.08);
+}
+
+#root[data-theme="oled"] #play-ripple { background: var(--accent-hover); }
+
+#root[data-theme="oled"] #settings-popover,
+#root[data-theme="oled"] #library-dialog {
+  background: linear-gradient(145deg, #101015, #08080b);
+  border-color: var(--border-subtle);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.56), inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+#root[data-theme="oled"] #auto-fullscreen-options button,
+#root[data-theme="oled"] #theme-options button,
+#root[data-theme="oled"] #floating-lyrics-options button,
+#root[data-theme="oled"] #floating-lyrics-click-through-options button,
+#root[data-theme="oled"] .sort-pill,
+#root[data-theme="oled"] #library-search-wrap,
+#root[data-theme="oled"] .library-tab,
+#root[data-theme="oled"] #library-close {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--text-tertiary);
+}
+
+#root[data-theme="oled"] #auto-fullscreen-options button:hover,
+#root[data-theme="oled"] #auto-fullscreen-options button:focus-visible,
+#root[data-theme="oled"] #theme-options button:hover,
+#root[data-theme="oled"] #theme-options button:focus-visible,
+#root[data-theme="oled"] #floating-lyrics-options button:hover,
+#root[data-theme="oled"] #floating-lyrics-options button:focus-visible,
+#root[data-theme="oled"] #floating-lyrics-click-through-options button:hover,
+#root[data-theme="oled"] #floating-lyrics-click-through-options button:focus-visible,
+#root[data-theme="oled"] .sort-pill:hover,
+#root[data-theme="oled"] #library-close:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  outline: none;
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] #auto-fullscreen-options button.selected,
+#root[data-theme="oled"] #theme-options button.selected,
+#root[data-theme="oled"] #floating-lyrics-options button.selected,
+#root[data-theme="oled"] #floating-lyrics-click-through-options button.selected,
+#root[data-theme="oled"] .sort-pill.active,
+#root[data-theme="oled"] .library-tab.active {
+  background: var(--accent-surface);
+  border-color: var(--border-active);
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px rgba(140, 143, 255, 0.09);
+}
+
+#root[data-theme="oled"] .add-btn,
+#root[data-theme="oled"] #queue-footer .add-btn,
+#root[data-theme="oled"] .library-action {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] .add-btn:hover,
+#root[data-theme="oled"] #queue-footer .add-btn:hover,
+#root[data-theme="oled"] .library-action:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] #btn-rescan:hover {
+  color: var(--accent-hover);
+  border-color: var(--border-active);
+}
+
+#root[data-theme="oled"] .q-item:hover,
+#root[data-theme="oled"] .library-row:hover {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: var(--border-subtle);
+}
+
+#root[data-theme="oled"] .q-item.active {
+  background: linear-gradient(90deg, rgba(140, 143, 255, 0.13), rgba(10, 10, 14, 0.72));
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] .q-item.active::before {
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px rgba(140, 143, 255, 0.3);
+}
+
+#root[data-theme="oled"] .q-item.active .q-art {
+  border-color: rgba(140, 143, 255, 0.36);
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] .q-play-next:hover {
+  color: var(--accent-hover);
+  background: var(--accent-surface);
+}
+
+#root[data-theme="oled"] #queue-list::-webkit-scrollbar,
+#root[data-theme="oled"] #library-content::-webkit-scrollbar {
+  background: transparent;
+}
+
+#root[data-theme="oled"] #queue-list::-webkit-scrollbar-thumb,
+#root[data-theme="oled"] #library-content::-webkit-scrollbar-thumb {
+  background: #3a3942;
+}
+
+#root[data-theme="oled"] #queue-list::-webkit-scrollbar-thumb:hover,
+#root[data-theme="oled"] #library-content::-webkit-scrollbar-thumb:hover {
+  background: #5b5964;
+}
+
+#root[data-theme="oled"] #queue-footer {
+  background: linear-gradient(180deg, #0a0a0e, #050506);
+  border-color: var(--border-subtle);
+}
+
+#root[data-theme="oled"] #btn-clear-queue {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-tertiary);
+}
+
+#root[data-theme="oled"] #btn-clear-queue:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-hover);
+  color: var(--text-secondary);
+}
+
+#root[data-theme="oled"] #eq-panel {
+  background: #0a0a0e;
+  border-color: var(--border-subtle);
+}
+
+#root[data-theme="oled"] #eq-toggle-track {
+  background: #222128;
+  border-color: var(--border-subtle);
+}
+
+#root[data-theme="oled"] #eq-toggle:checked + #eq-toggle-track {
+  background: var(--accent-primary);
+  border-color: var(--border-active);
+}
+
+#root[data-theme="oled"] .eq-handle {
+  background: #121117;
+  border-color: #302f38;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035), 0 3px 9px rgba(0, 0, 0, 0.35);
+}
+
+#root[data-theme="oled"] .eq-slider-wrap:hover .eq-handle {
+  border-color: var(--border-hover);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.04), 0 3px 11px rgba(0, 0, 0, 0.42);
+}
+
+#root[data-theme="oled"] .eq-slider-wrap:active .eq-handle,
+#root[data-theme="oled"] .eq-slider-wrap.dragging .eq-handle {
+  border-color: var(--border-active);
+  box-shadow: 0 0 10px rgba(140, 143, 255, 0.2);
+}
+
+#root[data-theme="oled"] .eq-grip {
+  background: repeating-linear-gradient(to bottom, var(--accent-primary) 0 1.5px, transparent 1.5px 4.5px);
+}
+
+#root[data-theme="oled"] #eq-reset:hover {
+  background: var(--accent-surface);
+  border-color: var(--border-active);
+  color: var(--accent-hover);
+  box-shadow: none;
+}
+
+#root[data-theme="oled"] .library-row-icon,
+#root[data-theme="oled"] .library-song-art {
+  background: var(--bg-surface-raised);
+  border-color: var(--border-subtle);
+  color: var(--accent-primary);
+}
+
+#root[data-theme="oled"] #library-dialog-header,
+#root[data-theme="oled"] #library-dialog-footer {
+  border-color: var(--border-subtle);
+}
+
+#root[data-theme="oled"] #library-search-wrap:focus-within {
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 2px rgba(140, 143, 255, 0.08);
+}
+
+#root[data-theme="oled"] .library-remove,
+#root[data-theme="oled"] #library-clear {
+  border-color: rgba(216, 120, 136, 0.22);
+  background: rgba(216, 120, 136, 0.055);
+  color: #c98a95;
+}
+
+#root[data-theme="oled"] .library-remove:hover,
+#root[data-theme="oled"] #library-clear:hover {
+  background: rgba(216, 120, 136, 0.12);
+  color: #f2d8dd;
+}
+
+#root[data-theme="oled"] #lyrics-vignette,
+#root[data-theme="oled"] #cover-wrap:hover #lyrics-overlay.lyrics-has-lines #lyrics-vignette {
+  background: radial-gradient(circle at 50% 50%, rgba(5, 5, 6, 0.35), rgba(5, 5, 6, 0.78));
+  box-shadow: inset 0 0 42px rgba(0, 0, 0, 0.48);
+}
+
+#root[data-theme="oled"] .lyrics-line {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.72), 0 0 14px rgba(140, 143, 255, 0.12);
+}
+
+#root[data-theme="oled"] .lyrics-main { filter: drop-shadow(0 0 8px rgba(140, 143, 255, 0.1)); }
+
+#root[data-theme="oled"] #lyrics-status {
+  background: rgba(10, 10, 14, 0.72);
+  border-color: rgba(140, 143, 255, 0.2);
+  color: var(--text-secondary);
+}
+
+#root[data-theme="oled"] #lyrics-overlay.lyrics-loading .lyrics-main {
+  color: var(--text-primary);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8), 0 0 14px rgba(140, 143, 255, 0.1);
+}
+
+#root[data-theme="oled"].fullscreen-mode #fullscreen-player {
+  background: #050506;
+  color: var(--text-primary);
+}
+
+#root[data-theme="oled"].fullscreen-mode #fullscreen-scrim {
+  background: linear-gradient(90deg, rgba(5, 5, 6, 0.82), rgba(5, 5, 6, 0.45) 42%, rgba(5, 5, 6, 0.84));
+}
+
+#root[data-theme="oled"].fullscreen-mode #btn-exit-fullscreen {
+  background: rgba(10, 10, 14, 0.72);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+#root[data-theme="oled"].fullscreen-mode #btn-exit-fullscreen:hover,
+#root[data-theme="oled"].fullscreen-mode .fullscreen-control:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-primary);
+}
+
+#root[data-theme="oled"].fullscreen-mode #fullscreen-seek-fill,
+#root[data-theme="oled"].fullscreen-mode .fullscreen-play {
+  background: var(--accent-primary);
+  color: #101019;
+}
+
+#root[data-theme="oled"].fullscreen-mode .fullscreen-play:hover { background: var(--accent-hover); }
+
+#root[data-theme="oled"].fullscreen-mode .fullscreen-lyric { color: rgba(242, 241, 246, 0.3); }
+#root[data-theme="oled"].fullscreen-mode .fullscreen-lyric.current { color: var(--text-primary); }

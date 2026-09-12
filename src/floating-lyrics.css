@@ -5,6 +5,10 @@
   --floating-padding-x: 38px;
   --floating-side-size: 18px;
   --floating-current-size: 30px;
+  --floating-control-size: 34px;
+  --floating-play-size: 44px;
+  --floating-controls-gap: 14px;
+  --floating-controls-margin: 4px;
 }
 
 html,
@@ -68,6 +72,67 @@ body:active {
 
 .floating-lyric:empty {
   visibility: hidden;
+}
+
+#floating-lyrics-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--floating-controls-gap);
+  margin-top: var(--floating-controls-margin);
+  -webkit-app-region: no-drag;
+}
+
+.floating-lyrics-control {
+  display: grid;
+  width: var(--floating-control-size);
+  height: var(--floating-control-size);
+  padding: 0;
+  place-items: center;
+  border: 1.25px solid rgba(255, 255, 255, 0.68);
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.floating-lyrics-control:hover,
+.floating-lyrics-control:focus-visible {
+  border-color: #fff;
+  color: #fff;
+  outline: none;
+  transform: scale(1.06);
+}
+
+.floating-lyrics-control:active {
+  transform: scale(0.95);
+}
+
+.floating-lyrics-control svg {
+  width: 64%;
+  height: 64%;
+  fill: currentColor;
+}
+
+.floating-lyrics-play {
+  width: var(--floating-play-size);
+  height: var(--floating-play-size);
+  border-color: rgba(255, 255, 255, 0.88);
+  color: #fff;
+}
+
+.floating-icon-pause {
+  display: none;
+}
+
+.floating-lyrics-play.is-playing .floating-icon-play {
+  display: none;
+}
+
+.floating-lyrics-play.is-playing .floating-icon-pause {
+  display: block;
 }
 
 #floating-lyrics.transition-forward .floating-lyric {

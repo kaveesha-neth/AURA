@@ -192,9 +192,17 @@
           </button>
         </div>
 
-        <button class="player-utility-btn" id="btn-fullscreen" title="Fullscreen player" aria-label="Enter fullscreen player">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,3 3,3 3,9"/><polyline points="15,3 21,3 21,9"/><polyline points="3,15 3,21 9,21"/><polyline points="21,15 21,21 15,21"/></svg>
-        </button>
+        <div class="player-utility-buttons">
+          <button class="player-utility-btn" id="btn-floating-lyrics" title="Enable Floating Lyrics" aria-label="Enable Floating Lyrics" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="15.9" cy="6.35" r="4.2"/>
+              <path d="M12.95 3.35 19.25 9.65M12.2 9.2l-6.65 7.25a2.25 2.25 0 0 0 3.18 3.18l7.25-6.65M7.8 13.4l3.1 3.1M8.3 16.4l-1.55.95M9.7 18.85l1.05-1.55M5.9 20.05c-1.35.05-2.4.55-3.1 1.5"/>
+            </svg>
+          </button>
+          <button class="player-utility-btn" id="btn-fullscreen" title="Fullscreen player" aria-label="Enter fullscreen player">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,3 3,3 3,9"/><polyline points="15,3 21,3 21,9"/><polyline points="3,15 3,21 9,21"/><polyline points="21,15 21,21 15,21"/></svg>
+          </button>
+        </div>
 
         <!-- Equalizer -->
         <div id="eq-panel">
