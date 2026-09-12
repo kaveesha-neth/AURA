@@ -1,5 +1,7 @@
 <div align="center">
-  <img src="assets/AURA-logo-icon-HQ.png" alt="Aura logo" width="96" height="96">
+  <!-- <img src="assets/AURA-logo-icon-HQ.png" alt="Aura logo" width="96" height="96"> -->
+  ![Aura Wide LOGO](docs/screenshots/Aura-name-logo.webp)
+
 
 # Aura Music Player
 
@@ -7,10 +9,10 @@
 
 Aura is a modern, offline-first music player for people who want a beautiful local library experience without the weight of a full streaming app. It focuses on clean UI, album-art-driven visuals, synced lyrics, persistent queue control, and an immersive fullscreen now-playing view.
 
-![Aura Music Player screenshot](docs/screenshots/aura-main.png)
+![Aura Music Player screenshot](docs/screenshots/aura-main.webp)
 
 <!-- Fullscreen screenshot placeholder: add docs/screenshots/aura-full-screen.png, then uncomment the line below. -->
-![Aura fullscreen player](docs/screenshots/aura-full-screen.png)
+![Aura fullscreen player](docs/screenshots/aura-full-screen.webp)
 
 
 </div>
