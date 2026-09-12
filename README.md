@@ -1,6 +1,7 @@
 <div align="center">
   <!-- <img src="assets/AURA-logo-icon-HQ.png" alt="Aura logo" width="96" height="96"> -->
-  ![Aura Wide LOGO](docs/screenshots/Aura-name-logo.webp)
+
+![Aura Wide LOGO](docs/screenshots/Aura-name-logo.webp)
 
 
 # Aura Music Player
