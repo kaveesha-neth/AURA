@@ -1,5 +1,8 @@
 <div align="center">
-  <img src="assets/AURA-logo-icon-HQ.png" alt="Aura logo" width="96" height="96">
+  <!-- <img src="assets/AURA-logo-icon-HQ.png" alt="Aura logo" width="96" height="96"> -->
+
+![Aura Wide LOGO](docs/screenshots/Aura-name-logo.webp)
+
 
 # Aura Music Player
 
@@ -7,10 +10,9 @@
 
 Aura is a modern, offline-first music player for people who want a beautiful local library experience without the weight of a full streaming app. It focuses on clean UI, album-art-driven visuals, synced lyrics, persistent queue control, and an immersive fullscreen now-playing view.
 
-![Aura Music Player screenshot](docs/screenshots/aura-main.png)
+![Aura Music Player screenshot](docs/screenshots/aura-main.webp)
 
-<!-- Fullscreen screenshot placeholder: add docs/screenshots/aura-full-screen.png, then uncomment the line below. -->
-![Aura fullscreen player](docs/screenshots/aura-full-screen.png)
+![Aura fullscreen player](docs/screenshots/aura-full-screen.webp)
 
 
 </div>
@@ -74,11 +76,23 @@ The app reads local audio files, extracts metadata and album art, builds a persi
 - Custom titlebar with minimize, maximize/restore, and close controls.
 - Manually resizable player and queue layout.
 - Expandable side-by-side queue panel.
+- Midnight and OLED color themes, remembered between launches.
 - Rotating disc-style album cover only while the focused window is playing.
 - Album-art glow and dynamic visual treatment.
 - Smooth transitions and polished interaction states.
 - App footer with copyright text.
 - Dedicated fullscreen launcher above the equalizer, without disrupting the playback-control layout.
+
+### Floating Lyrics
+
+![Aura Floating Lyrics widget](docs/screenshots/lyrics-widget.webp)
+
+- Separate frameless, transparent, always-on-top lyrics window.
+- Reuses Aura's synced lyric stack: the current line is prominent while nearby lines remain visible for context.
+- Drag the widget freely, or enable click-through so it never blocks the app beneath it.
+- Built-in previous, play/pause, and next controls remain interactive in click-through mode.
+- Remembers its enabled state, position, scale, click-through preference, and visible-line count.
+- Automatically hides while Aura is in fullscreen and returns afterward only when it was previously enabled.
 
 ### Metadata and album art
 
@@ -114,6 +128,8 @@ The app reads local audio files, extracts metadata and album art, builds a persi
 - Media Session API metadata support.
 - Windows/media-key style actions for play/pause, next, and previous.
 - Native fullscreen entry and exit with Esc and an in-view exit action.
+- Optional automatic fullscreen after a chosen inactivity delay.
+- Silent GitHub Releases update checks, with in-app download and restart-to-install when a newer version is available.
 - Secure preload bridge using Electron `contextBridge`.
 - Uses app data storage instead of writing generated library/cache files into the install directory.
 
