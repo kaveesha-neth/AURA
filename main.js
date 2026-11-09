@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, protocol, nativeImage } = require('
 const path   = require('path');
 const fs     = require('fs');
 const crypto = require('crypto');
+const { createYouTubeService } = require('./youtube');
 
 let mm; // music-metadata loaded lazily after app ready
 let mainWindow;
@@ -76,6 +77,9 @@ function safeMusicPath() {
   try { return app.getPath('music'); }
   catch { return app.getPath('home'); }
 }
+
+const youtube = createYouTubeService({ downloadDir: path.join(safeMusicPath(), 'AURA Downloads') });
+let youtubeImportInFlight = false;
 
 function normalizeFloatingLyricsBounds(bounds) {
   if (!bounds || !Number.isFinite(Number(bounds.x)) || !Number.isFinite(Number(bounds.y))) return null;
@@ -1053,11 +1057,46 @@ app.on('activate', () => {
 });
 app.on('before-quit', () => {
   isQuitting = true;
+  youtube.cancel();
   if (updateCheckTimer) clearTimeout(updateCheckTimer);
   destroyFloatingLyricsWindow();
 });
 
 // ─── IPC ──────────────────────────────────────────────────────────────────────
+function assertYouTubeSender(event) {
+  if (!mainWindow || event.sender !== mainWindow.webContents || event.senderFrame !== mainWindow.webContents.mainFrame) {
+    throw new Error('YouTube requests must come from the AURA player.');
+  }
+}
+ipcMain.handle('youtube-search', async (event, query, source) => {
+  assertYouTubeSender(event);
+  try { return { results: await youtube.search(query, source) }; }
+  catch (error) { return { error: error.message }; }
+});
+ipcMain.handle('youtube-cancel', event => { assertYouTubeSender(event); youtube.cancel(); });
+ipcMain.handle('youtube-check-tools', async event => {
+  assertYouTubeSender(event);
+  try { return { tools: await youtube.checkTools() }; }
+  catch (error) { return { error: error.message }; }
+});
+ipcMain.handle('youtube-download', async (event, id) => {
+  assertYouTubeSender(event);
+  if (youtubeImportInFlight) return { error: 'A download is already being added to the library.' };
+  youtubeImportInFlight = true;
+  try {
+    const filePath = await youtube.download(id, message => {
+      if (!event.sender.isDestroyed()) event.sender.send('youtube-progress', message);
+    });
+    const song = await scanFile(filePath);
+    // Read after scanning so other completed library edits are retained.
+    const lib = readLibrary();
+    const library = writeLibrary({ ...lib, files: uniquePaths([...lib.files, filePath]),
+      songs: [...lib.songs.filter(item => item.filePath !== filePath), song] });
+    return { song, library };
+  } catch (error) { return { error: error.message }; }
+  finally { youtubeImportInFlight = false; }
+});
+
 ipcMain.handle('scan-library', async () => {
   const lib = readLibrary();
 
