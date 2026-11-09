@@ -676,6 +676,36 @@ function getNextNode(){
   return next;
 }
 
+function queueNodeNext(node) {
+  if (!node || node === state.currentNode) return;
+  queue.detach(node);
+  if (state.currentNode) queue.insertAfter(state.currentNode, node);
+  else if (queue.head) queue.insertBefore(queue.head, node);
+  else queue.appendNode(node);
+  if (state.shuffle) {
+    shuffleState.history.splice(shuffleState.historyIndex + 1);
+    shuffleState.remaining.add(node.id);
+  }
+}
+
+function addDownloadedSong(song, library, next) {
+  libraryState = library;
+  // Insert only this song, preserving queue edits and the current audio element.
+  let node = queue.toArray().find(item => item.song.filePath === song.filePath);
+  if (!node) {
+    stampOrig(song);
+    node = queue.push(song);
+    if (state.shuffle) {
+      shuffleState.originalOrder.push(node.id);
+      shuffleState.remaining.add(node.id);
+    }
+  }
+  if (next) queueNodeNext(node);
+  renderQueue();
+  renderLibraryManager();
+  if (!state.currentNode) loadNode(queue.head, false);
+}
+
 function getPrevNode(){
   if(audio.currentTime>3) return state.currentNode;
   if(!state.currentNode)  return queue.tail;
@@ -950,9 +980,7 @@ function renderQueue() {
       e.stopPropagation();
       const node=queue.map[btn.dataset.id];
       if(!node||node===state.currentNode) return;
-      queue.detach(node);
-      if(state.currentNode) queue.insertAfter(state.currentNode, node);
-      else { node.next=queue.head; if(queue.head)queue.head.prev=node;else queue.tail=node; queue.head=node; queue.map[node.id]=node; queue.size++; }
+      queueNodeNext(node);
       renderQueue();
       requestAnimationFrame(()=>{
         const el=queueList.querySelector(`[data-id="${node.id}"]`);
@@ -1536,7 +1564,7 @@ async function initUpdateButton() {
 }
 
 function canAutoEnterFullscreen() {
-  return autoFullscreenDelay > 0 && state.isPlaying && isWindowFocused && !isFullscreenMode;
+  return autoFullscreenDelay > 0 && state.isPlaying && isWindowFocused && !isFullscreenMode && document.getElementById('youtube-modal').hidden;
 }
 
 function clearAutoFullscreenTimer() {
@@ -1728,6 +1756,7 @@ audio.addEventListener('error',e=>{console.warn(e);const n=getNextNode();if(n&&n
 // KEYBOARD
 // ═══════════════════════════════════════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
+  if (!document.getElementById('youtube-modal').hidden) return;
   if(e.code === 'Escape' && isFullscreenMode) { e.preventDefault(); setFullscreenMode(false); return; }
   if(e.code === 'Escape' && settingsPopover?.classList.contains('open')) { e.preventDefault(); setSettingsPopover(false); return; }
   if(e.code === 'Escape' && libraryModal?.classList.contains('open')) { setLibraryModal(false); return; }

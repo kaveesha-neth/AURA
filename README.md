@@ -19,7 +19,73 @@ Aura is a modern, offline-first music player for people who want a beautiful loc
 
 ---
 
-## Overview
+## YouTube setup (Windows)
+
+Use **Search online** beside **Search queue** to search by song or artist.
+**YouTube Music · Songs** is selected by default to search the YouTube Music song catalog;
+choose **YouTube** for general video results. Both sources use the same
+download and queue actions; no additional dependency or API key is required. Each result has
+**Play Next** and **Add to Queue**. Both download audio as M4A, embed available song
+metadata and cover art (converted to JPEG), read its metadata,
+and save it in your existing library. Play Next inserts it immediately after the
+track that is current **when the download finishes**, including with shuffle on.
+The current track keeps playing. An empty queue loads the new track paused.
+Repeat One retains its existing behavior: turn it off to advance automatically.
+
+1. Download the Windows standalone `yt-dlp.exe` from the
+   [official yt-dlp releases](https://github.com/yt-dlp/yt-dlp/releases/latest).
+2. Download a Windows FFmpeg build linked from
+   [FFmpeg's download page](https://ffmpeg.org/download.html). Extract it and find
+   `ffmpeg.exe` and `ffprobe.exe` in its `bin` folder.
+3. Place all three executables in a permanent folder, for example
+   `C:\Tools\AuraAudio`. Add that folder to your **user Path** using Windows'
+   “Edit environment variables for your account” dialog.
+4. Install [Deno](https://docs.deno.com/runtime/getting_started/installation/), and
+   ensure `deno.exe` is also on Path. YouTube's JavaScript challenges require a
+   supported runtime; the standalone yt-dlp release includes its solver scripts.
+   See the [official JavaScript setup guide](https://github.com/yt-dlp/yt-dlp/wiki/EJS).
+5. Fully quit and reopen AURA so it inherits the updated Path. Open a new PowerShell
+   window and verify:
+
+   ```powershell
+   yt-dlp --version
+   ffmpeg -version
+   ffprobe -version
+   deno --version
+   ```
+
+For source development, run `npm ci` and `npm start`. No YouTube API key is needed.
+These executables are external dependencies and are not bundled in AURA's installer.
+Local playback works without them. AURA ignores yt-dlp configuration files so custom
+output locations, playlist settings, and post-download commands cannot affect this flow.
+
+Audio is kept in **AURA Downloads** under your Windows Music folder (including a
+redirected Music folder). Files use the YouTube video ID as their filename; embedded
+metadata supplies the displayed song title. A completed download is reused when
+selected again. Downloads appear under **Library → Loose files**. Removing a source
+from AURA does not delete the downloaded audio.
+New downloads use `-f bestaudio --extract-audio --audio-format m4a --audio-quality 0
+--embed-metadata --embed-thumbnail --convert-thumbnails jpg`. Available tags and
+embedded cover art are read by AURA's existing scanner. Existing MP3 files are kept;
+selecting the same result now downloads a separate M4A version.
+
+Search/download progress and errors appear inside the dialog. **Check Tools** lists installed
+executables and versions and tests FFmpeg's AAC encoder for M4A. AURA explicitly passes the
+checked FFmpeg directory to yt-dlp so conversion uses the same installation. Conversion
+failures show FFmpeg's diagnostic output instead of generic network/runtime advice.
+**Cancel** stops the active operation and cleans temporary download files. Closing the dialog lets the
+operation continue; reopen Search online to see its status. Only one operation runs at a
+time. Search times out after one minute and downloads after fifteen minutes. Failed
+downloads are not added to the library or queue; a saved file can be imported again
+if library registration fails. If YouTube returns bot, sign-in, regional, or unavailable
+video errors, try another result. For extractor or challenge failures, update yt-dlp
+(`yt-dlp -U` for the standalone executable), check Deno, and restart AURA. Only
+download audio you have permission to save.
+
+Run `npm test` for automated coverage of download staging, retry, cancellation,
+process failures, and queue insertion during playback and shuffle.
+
+## Player overview
 
 Aura is designed around a flexible two-panel desktop layout:
 
@@ -238,6 +304,15 @@ Open **Library** from the queue panel to manage:
 Removing a folder or file from the Library modal only removes it from Aura's saved sources. It does **not** delete your actual files from disk.
 
 ---
+
+## Building the Windows installer
+
+Run `npm run build-win` from the project folder. The installer is written to
+`dist/Aura-Setup-<version>.exe`. This builds locally without publishing a release.
+Build temporary files are created under `.cache/build-temp` on the project's drive
+and cleaned up afterward. Keep several GB free on that drive for packaging and
+compression; this avoids filling the Windows system temporary folder when the
+project is on another drive.
 
 ## Project structure
 

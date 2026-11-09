@@ -268,6 +268,7 @@
         <div id="queue-search-wrap">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
           <input type="text" id="queue-search" placeholder="Search queue…" autocomplete="off"/>
+          <button class="add-btn" id="btn-search-online" type="button" title="Search online for songs" aria-haspopup="dialog" aria-controls="youtube-dialog" aria-expanded="false">Search online</button>
         </div>
         <div id="queue-sort-bar">
           <span id="queue-sort-label">Sort</span>
@@ -364,6 +365,20 @@
       </div>
     </div>
 
+    <div id="youtube-modal" hidden>
+      <div id="youtube-backdrop"></div>
+      <section id="youtube-dialog" role="dialog" aria-modal="true" aria-labelledby="youtube-title" tabindex="-1">
+        <header><div><h2 id="youtube-title">Search online</h2><p>Find a song to add to your library and queue.</p></div><button class="library-action" id="youtube-close" type="button" aria-label="Close online search">Close</button></header>
+        <label id="youtube-source-label" for="youtube-source">Search in
+          <select id="youtube-source"><option value="music" selected>YouTube Music · Songs</option><option value="youtube">YouTube</option></select>
+        </label>
+        <form id="youtube-form"><input id="youtube-query" type="search" maxlength="200" placeholder="Song or artist" aria-label="Search song or artist" required autocomplete="off"><button class="library-action" id="youtube-search" type="submit">Search</button></form>
+        <div id="youtube-operation"><p id="youtube-status" role="status" aria-live="polite">Search for a song to get started.</p><button class="library-action" id="youtube-cancel" hidden>Cancel</button></div>
+        <div id="youtube-results" aria-label="YouTube results"></div>
+        <footer><p>Downloads save as M4A with metadata and cover art in Music / AURA Downloads. Play Next queues the song when its download finishes. Download only audio you have permission to save.</p><button class="library-action" id="youtube-check-tools" type="button">Check Tools</button></footer>
+      </section>
+    </div>
+
     <!-- Fullscreen now-playing view -->
     <section id="fullscreen-player" aria-hidden="true">
       <div id="fullscreen-background"></div>
@@ -410,5 +425,6 @@
 
   <audio id="audio" crossorigin="anonymous"></audio>
   <script src="renderer.js"></script>
+  <script src="youtube-ui.js"></script>
 </body>
 </html>
