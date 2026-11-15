@@ -4,6 +4,11 @@ const fs     = require('fs');
 const crypto = require('crypto');
 const { createYouTubeService } = require('./youtube');
 
+// Keep the existing library and settings location when changing the display name.
+const existingUserDataPath = app.getPath('userData');
+app.setName('AURA - Legacy');
+app.setPath('userData', existingUserDataPath);
+
 let mm; // music-metadata loaded lazily after app ready
 let mainWindow;
 let floatingLyricsWindow;

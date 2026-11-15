@@ -1541,7 +1541,7 @@ function updateUpdateButton(nextState = {}) {
   iconUpdateDownload.hidden = status === 'downloaded';
   iconUpdateRestart.hidden = status !== 'downloaded';
 
-  const versionLabel = version ? `Aura v${version}` : 'the latest Aura update';
+  const versionLabel = version ? `AURA - Legacy v${version}` : 'the latest AURA - Legacy update';
   if (status === 'available') {
     btnUpdate.title = `Download ${versionLabel}`;
     btnUpdate.setAttribute('aria-label', `Download ${versionLabel}`);
@@ -1549,7 +1549,7 @@ function updateUpdateButton(nextState = {}) {
     btnUpdate.title = `Downloading ${versionLabel}: ${Math.round(Number(percent) || 0)}%`;
     btnUpdate.setAttribute('aria-label', btnUpdate.title);
   } else if (status === 'downloaded') {
-    btnUpdate.title = `Restart Aura to install ${versionLabel}`;
+    btnUpdate.title = `Restart AURA - Legacy to install ${versionLabel}`;
     btnUpdate.setAttribute('aria-label', btnUpdate.title);
   }
 }

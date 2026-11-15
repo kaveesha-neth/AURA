@@ -4,7 +4,10 @@
 ![Aura Wide LOGO](docs/screenshots/Aura-name-logo.webp)
 
 
-# Aura Music Player
+# AURA - Legacy
+
+Version **2.4.0** is the legacy edition of AURA, displayed and installed as
+**AURA - Legacy**. It retains the existing app identity and saved library/settings.
 
 ### A polished local desktop music player built with Electron.
 
@@ -265,8 +268,8 @@ Aura also checks nearby cover folders such as `covers/`, `cover/`, and `artwork/
 Aura is distributed as a ready-to-install desktop app through GitHub Releases.
 
 1. Go to the latest **Release** on this repository.
-2. Download the Windows installer, usually named something like `Aura Music Player Setup.exe`.
-3. Run the installer and open Aura.
+2. Download the Windows installer, named `AURA-Legacy-Setup-2.4.0.exe`.
+3. Run the installer and open AURA - Legacy.
 4. Click **Files** to select songs, or **Folder** to select your music folder.
 5. Done. Aura scans your music, builds the queue, and remembers your selected library sources for next time.
 
@@ -308,7 +311,7 @@ Removing a folder or file from the Library modal only removes it from Aura's sav
 ## Building the Windows installer
 
 Run `npm run build-win` from the project folder. The installer is written to
-`dist/Aura-Setup-<version>.exe`. This builds locally without publishing a release.
+`dist/AURA-Legacy-Setup-<version>.exe`. This builds locally without publishing a release.
 Build temporary files are created under `.cache/build-temp` on the project's drive
 and cleaned up afterward. Keep several GB free on that drive for packaging and
 compression; this avoids filling the Windows system temporary folder when the
