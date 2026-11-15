@@ -1,7 +1,7 @@
 {
   "name": "aura-music-player",
   "version": "2.4.0",
-  "description": "Aura - Local Music Player",
+  "description": "AURA - Legacy: v2.4.0 local music player",
   "author": "Kaveesha Nethmal",
   "main": "main.js",
   "repository": {
@@ -23,8 +23,8 @@
   },
   "build": {
     "appId": "com.aura.musicplayer",
-    "productName": "Aura",
-    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "productName": "AURA - Legacy",
+    "artifactName": "AURA-Legacy-Setup-${version}.${ext}",
     "publish": {
       "provider": "github",
       "owner": "kaveesha-neth",
