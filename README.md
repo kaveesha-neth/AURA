@@ -1,101 +1,125 @@
+<div align="center">
+
+<img src="assets/AURA-logo-icon-HQ.png" alt="AURA icon" width="88" />
+
 # AURA
 
-An atmospheric desktop music player built with Electron, React, TypeScript, Vite, and real [Glisse](https://github.com/0kzh/glisse) Liquid Glass components.
+**Your music. Your space.**
 
-This is a separate application that installs alongside the original AURA. It has its own Windows application ID, shortcuts, uninstaller, and `%APPDATA%\AURA 3.0` data directory. It starts with an independent library; the original AURA library and preferences are untouched.
+An atmospheric, offline-first music player for Windows — with a new Liquid Glass interface, a dedicated touch experience, and integrated Windows media controls.
 
-Square album artwork, quiet album-derived lighting, a floating playback dock, a dense searchable queue, immersive synchronized lyrics, and a lightweight always-on-top lyric window.
+[![Latest release](https://img.shields.io/github/v/release/kaveesha-neth/AURA?style=flat-square&label=release&color=875fc4)](https://github.com/kaveesha-neth/AURA/releases/latest)
+![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4?style=flat-square&logo=windows11&logoColor=white)
+[![License](https://img.shields.io/github/license/kaveesha-neth/AURA?style=flat-square)](LICENSE)
 
-## Run
+[**Download AURA**](https://github.com/kaveesha-neth/AURA/releases/latest) · [Explore features](#the-experience) · [Technology](#built-with) · [AURA Legacy](#aura-legacy)
 
-Use Node.js 22.12+ (Node 24 recommended).
+<br />
+
+<img src="docs/showcase/desktop.png" alt="AURA desktop player with artwork, lyrics and music queue" width="100%" />
+
+<sub>Music first. Everything else, within reach.</sub>
+
+</div>
+
+---
+
+## The experience
+
+AURA puts local music at the center, with subtle album-derived ambient lighting, customizable playback controls, synchronized lyrics, and a library designed for real collections.
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<h3>Made for touch</h3>
+<img src="docs/showcase/touch-player.png" alt="AURA fullscreen touch player" width="100%" />
+<p>Fullscreen controls, searchable queue, and a vertical volume fader — all synchronized with desktop playback.</p>
+</td>
+<td width="50%" valign="top">
+<h3>Control Windows media</h3>
+<img src="docs/showcase/windows-media.png" alt="AURA Windows media sessions and audio output controls" width="100%" />
+<p>Switch between your AURA library and compatible Windows media sessions. Select playback outputs and manage system volume.</p>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+<h3>Discover & bring music home</h3>
+<img src="docs/showcase/discover.png" alt="AURA Discover interface" width="100%" />
+<p>Search YouTube and YouTube Music, download supported audio through external tools, and add it to your local library or queue.</p>
+</td>
+<td width="50%" valign="top">
+<h3>Make it yours</h3>
+<p><strong>Sculpted or Classic controls.</strong> OLED mode or artwork-driven atmosphere. A five-band equalizer, reduced effects, immersive lyrics, and floating always-on-top lyrics.</p>
+<p><strong>Library + Queue.</strong> Separate searchable views, virtualized desktop lists, drag-to-reorder, Play Next, shuffle history, and repeat.</p>
+<p><strong>Pick up where you left off.</strong> Restore the queue, selected track, playback position, and playback preferences.</p>
+</td>
+</tr>
+</table>
+
+## Built with
+
+<div align="center">
+
+![Electron](https://img.shields.io/badge/Electron-47848F?style=for-the-badge&logo=electron&logoColor=white)
+![React](https://img.shields.io/badge/React-149ECA?style=for-the-badge&logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![.NET 8](https://img.shields.io/badge/.NET_8-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+
+**[Glisse](https://github.com/0kzh/glisse)** · **[Lucide](https://lucide.dev/)** · **Windows Core Audio** · **Windows Media Session APIs** · **Web Audio API**
+
+</div>
+
+| Layer | How AURA uses it |
+|:--|:--|
+| **Electron** | Native desktop windows, local library access, packaging, and IPC |
+| **React + TypeScript + Vite** | Composed interface, library and queue views, touch UI, and frontend builds |
+| **Glisse + Lucide** | Liquid Glass surfaces and a consistent icon system |
+| **JavaScript audio controller + Web Audio API** | Local playback orchestration, queue, synchronized lyrics, and equalization |
+| **.NET 8 / WinRT** | Bundled Windows media-session bridge for compatible external players |
+| **PowerShell + Windows Core Audio** | Master volume and playback-device integration |
+| **yt-dlp + FFmpeg** | Optional external download and media-processing tools for Discover |
+
+> **Architecture note:** AURA uses a hybrid renderer: React owns the modern interface, while the retained JavaScript controller coordinates parts of playback and state. The Windows media bridge is self-contained; end users don't need to install .NET separately.
+
+## Get AURA
+
+<div align="center">
+
+### [⬇ Download the latest Windows release](https://github.com/kaveesha-neth/AURA/releases/latest)
+
+**Windows 10 / 11 · x64 · Installer**
+
+[Release notes](https://github.com/kaveesha-neth/AURA/releases/latest) · [Report an issue](https://github.com/kaveesha-neth/AURA/issues/new)
+
+</div>
+
+AURA installs independently of AURA Legacy, with a separate app ID and data profile. It does **not** automatically import your older library or settings. Automatic updates are currently disabled; future releases need to be installed manually until the new update feed is configured.
+
+The optional Discover downloader relies on external yt-dlp and FFmpeg executables. External Windows media controls work only with applications that expose supported Windows media sessions; audio-output switching changes Windows defaults rather than per-app routing.
+
+## AURA Legacy
+
+The original AURA interface is preserved as **AURA Legacy v2.4.0**.
+
+[**Download AURA Legacy**](https://github.com/kaveesha-neth/AURA/releases/tag/v2.4.0) · [Browse legacy source](https://github.com/kaveesha-neth/AURA/tree/legacy/v2)
+
+## For developers
+
+AURA is built with Electron, React, TypeScript, Vite, and a native Windows media bridge. For local development on Windows, use Node.js 22.12+ and the .NET 8 SDK.
 
 ```powershell
 npm install
 npm run dev
 ```
 
-`npm run dev` starts Vite and opens Electron. The Electron window is required for library access, local audio, and native window controls. Renderer edits may reload the page to keep the compatibility controller synchronized.
+`npm run build-win` produces the Windows installer. More architecture details and verification utilities are documented in [`docs/`](docs/) and the [UI redesign report](AURA-3.0-REDESIGN-REPORT.md).
 
-To run the compiled renderer locally:
+---
 
-```powershell
-npm start
-```
+<div align="center">
 
-## Build
+Designed and developed by **Kaveesha Nethmal**  
+© 2026 · [License](LICENSE)
 
-```powershell
-npm run build-win
-```
-
-Builds are grouped by version under `dist/releases/<version>/`. Current installer: `dist/releases/3.2.2/AURA-Setup-3.2.2.exe`. Run without installing using `dist/releases/3.2.2/win-unpacked/AURA.exe`, keeping that entire folder together. Older mixed build outputs are archived under `dist/archive/pre-3.2.2/`; see `dist/README.md` for deletion guidance.
-
-The Windows build uses temporary space under `.cache/build-temp` on the project drive. `build-win` does not publish a release. Automatic updates and `release-win` are disabled until a separate publishing destination and update feed are configured. This app does not use the original AURA GitHub release feed. macOS and Linux build scripts are retained but require their corresponding build environments.
-
-## Your music
-
-- Windows media sessions use the self-contained .NET 8 bridge introduced in 3.2.1. A separate .NET installation is not needed to run AURA. Development builds require the .NET 8 SDK; `npm run build:native` builds the bridge, and `start`, `dev`, and `build-win` include that step automatically. If Windows media fails, expand **Connection details** and use **Open connection log**. See [bridge replacement and verification](docs/WINDOWS-MEDIA-BRIDGE.md).
-- **Touch playback sources**: use **AURA player** for the local library and queue, or **Windows media** to control a selected Windows media session. Windows mode shows scrollable app cards above an audio-output selector. Selecting a card changes the session being controlled without starting it. AURA pauses its own playback when switching to Windows mode; returning restores the queue without autoplay. Play/pause, previous/next, seek, shuffle, and repeat are enabled only when the selected app supports them. The output selector changes the Windows default output; custom per-app routes stay with those apps. Windows sound settings are available from the output panel. See [Windows media mode](docs/WINDOWS-MEDIA-MODE.md).
-- On Windows, both volume sliders and the mute button control the **system master volume** for the default output device. Windows volume keys, the taskbar slider, external mute changes, and output-device changes are reflected in AURA. Startup reads the current system level; saved player volume does not overwrite it. Other operating systems retain app volume control.
-- **Touch screen mode**: click the hand icon beside Settings in the title bar. AURA enters native fullscreen with large playback controls, artwork, a searchable queue, Play Next and Remove actions, and a vertical touch volume slider. Playback and queue state stay synchronized with the desktop player. Press Escape or use the exit button to return. Settings returns to the desktop settings panel; Add Music opens the file picker. Touch mode stays active until you exit it, including when music is paused.
-- Add files, add folders, or drop music into the window.
-- **Queue** and **Library** are separate views in the content header. Library has its own search and sorting, with Play, Play Next, and Add to Queue actions. **Music sources** opens saved folder/file management.
-- Search the queue without changing playback order. Sort by artist, album, or date added; combine sorts, and use the row menu or right-click for Play Next and removal.
-- Drag anywhere on a queue row to reorder, with a floating row, moving insertion pocket, animated reflow, and edge scrolling. Escape cancels; Alt + Up/Down on the row's reorder button provides keyboard access. Clear search and sorting before manual reordering.
-- Shuffle establishes a visible playback order. Previous/Next retain shuffle history. Right-click Shuffle or press Shift+S to reshuffle upcoming tracks.
-- The audio-settings icon opens the five-band equalizer. Use pointer or arrow keys; double-click a band or use Home to reset it.
-- Expand enters immersive artwork and lyrics. Double-click artwork to refresh lyrics.
-- Floating lyrics, click-through, scale, visible line count, automatic fullscreen, OLED mode, and reduced effects are available in Settings.
-- Settings → Appearance → Player controls switches between **Sculpted**, the shaped glass bar with a raised circular Play/Pause button, and **Classic**, the original dock. The choice saves automatically; switching keeps playback running. Sculpted is the default for profiles without a saved choice. Fullscreen retains its existing controls.
-- Discover online retains YouTube/YouTube Music search and downloads. It uses the existing external yt-dlp/FFmpeg tools; Check Tools reports their availability.
-
-Supported library formats: MP3, FLAC, WAV, OGG, M4A, AAC, Opus, WMA, AIFF/AIF, MP4, M4B. Actual decoding depends on Electron/Chromium codec support.
-
-## Shortcuts
-
-| Key | Action |
-| --- | --- |
-| Space | Play / pause |
-| Left / Right | Seek five seconds |
-| Alt + Left / Right | Previous / Next |
-| Up / Down | Volume |
-| S | Toggle shuffle |
-| Shift + S | Reshuffle upcoming tracks |
-| R | Cycle repeat off / all / one |
-| Esc | Exit fullscreen or close a panel |
-
-Sliders support arrow keys. Text fields and native controls retain their own keyboard behavior.
-
-## Data and architecture
-
-Library sources, optimized artwork, lyrics, settings, playback sessions, and Chromium storage use the independent `%APPDATA%\AURA 3.0` profile. Downloads use `Music/AURA 3.0 Downloads`. These existing storage paths are preserved across the display-name change so libraries, preferences, and downloads remain available. Removing a source never deletes music files. The internal package name is `aura-3-atmospheric`, Windows app ID is `com.aura.musicplayer3`, and product/shortcut/uninstall name is `AURA`. No original-AURA data is automatically migrated or shared.
-
-- `src/ui/`: React composition, shared virtual track lists, genuine Queue/Library navigation, material components, dialogs, and the unified `production.css` design/motion tokens.
-- `src/core/`: linked-list queue, LRC parser, Web Audio graph, restricted local-media streaming protocol.
-- `src/renderer.js`: retained playback/library/settings orchestration and UI compatibility adapter.
-- `main.js`, `preload.js`: Electron backend and isolated IPC bridge.
-- `src/floating-lyrics.*`: transparent lyric window and its lightweight material fallback.
-- `renderer-dist/`: generated, relative-path frontend used by Electron and packaging.
-
-See [AURA-3.0-REDESIGN-REPORT.md](AURA-3.0-REDESIGN-REPORT.md) for design decisions, the audit, verification evidence, and limitations. Original renderer sources and prior documentation are archived in `docs/original-renderer`.
-
-The production refinement is documented in [AURA-3.0-UI-REFINEMENT-REPORT.md](AURA-3.0-UI-REFINEMENT-REPORT.md), with a [before-and-after gallery](docs/ui-refinement/comparison.html). Floating lyrics now has a separate Vite entry point and shares the locally bundled Lucide icon family.
-
-## Verification
-
-```powershell
-npm run typecheck
-npm test
-npm run verify:electron
-npm run verify:ui
-npm run verify:alignment
-```
-
-The Electron suite creates synthetic audio and independent profiles under `.cache`; it does not test against your personal library. It records results and screenshots under `docs/verification`.
-
-The focused [alignment audit](UI-ALIGNMENT-AUDIT.md) records measured geometry and pointer interaction results. Its before/after captures and bounding boxes are in `docs/alignment`.
-
-To test the Vite renderer, keep `npm run dev:renderer` running in another terminal, then run `npm run verify:dev`. After building Windows and running the Electron suite, run `npm run verify:packaged` to exercise the real unpacked executable with an isolated profile.
-
-Copyright © 2026 Kaveesha Nethmal. See [LICENSE](LICENSE).
+</div>
