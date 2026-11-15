@@ -1,10 +1,22 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  systemVolumeSupported: process.platform === 'win32',
+  getWindowsMedia: () => ipcRenderer.invoke('get-windows-media'),
+  openWindowsMediaLog: () => ipcRenderer.invoke('open-windows-media-log'),
+  windowsMediaCommand: command => ipcRenderer.invoke('windows-media-command', command),
+  selectAudioOutput: id => ipcRenderer.invoke('select-audio-output', id),
+  openSoundSettings: () => ipcRenderer.invoke('open-sound-settings'),
+  getMasterVolume: () => ipcRenderer.invoke('get-master-volume'),
+  setMasterVolume: value => ipcRenderer.send('set-master-volume', value),
+  toggleMasterMute: () => ipcRenderer.send('toggle-master-mute'),
   searchYouTube: (query, source) => ipcRenderer.invoke('youtube-search', query, source),
   downloadYouTube: (id) => ipcRenderer.invoke('youtube-download', id),
   cancelYouTube: () => ipcRenderer.invoke('youtube-cancel'),
   checkYouTubeTools: () => ipcRenderer.invoke('youtube-check-tools'),
+  getPathForFile: (file) => webUtils.getPathForFile(file),
+  getPlayerState: () => ipcRenderer.invoke('get-player-state'),
+  savePlayerState: (state) => ipcRenderer.invoke('save-player-state', state),
   scanLibrary:   ()      => ipcRenderer.invoke('scan-library'),
   rescanLibrary: ()      => ipcRenderer.invoke('rescan-library'),
   openAndScan:   ()      => ipcRenderer.invoke('open-and-scan'),
@@ -33,6 +45,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toggleMaximize: () => ipcRenderer.send('win-toggle-maximize'),
   setFullscreen: (enabled) => ipcRenderer.send('win-set-fullscreen', enabled),
   setWidth: (w) => ipcRenderer.send('win-set-width', w),
+});
+
+ipcRenderer.on('master-volume-changed', (event, state) => {
+  window.dispatchEvent(new CustomEvent('master-volume-changed', { detail: state }));
+});
+ipcRenderer.on('windows-media-changed', (event, state) => {
+  window.dispatchEvent(new CustomEvent('windows-media-changed', { detail: state }));
 });
 
 ipcRenderer.on('youtube-progress', (event, message) => {

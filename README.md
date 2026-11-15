@@ -1,371 +1,101 @@
-<div align="center">
-  <!-- <img src="assets/AURA-logo-icon-HQ.png" alt="Aura logo" width="96" height="96"> -->
+# AURA
 
-![Aura Wide LOGO](docs/screenshots/Aura-name-logo.webp)
+An atmospheric desktop music player built with Electron, React, TypeScript, Vite, and real [Glisse](https://github.com/0kzh/glisse) Liquid Glass components.
 
+This is a separate application that installs alongside the original AURA. It has its own Windows application ID, shortcuts, uninstaller, and `%APPDATA%\AURA 3.0` data directory. It starts with an independent library; the original AURA library and preferences are untouched.
 
-# AURA - Legacy
+Square album artwork, quiet album-derived lighting, a floating playback dock, a dense searchable queue, immersive synchronized lyrics, and a lightweight always-on-top lyric window.
 
-Version **2.4.0** is the legacy edition of AURA, displayed and installed as
-**AURA - Legacy**. It retains the existing app identity and saved library/settings.
+## Run
 
-### A polished local desktop music player built with Electron.
+Use Node.js 22.12+ (Node 24 recommended).
 
-Aura is a modern, offline-first music player for people who want a beautiful local library experience without the weight of a full streaming app. It focuses on clean UI, album-art-driven visuals, synced lyrics, persistent queue control, and an immersive fullscreen now-playing view.
-
-![Aura Music Player screenshot](docs/screenshots/aura-main.webp)
-
-![Aura fullscreen player](docs/screenshots/aura-full-screen.webp)
-
-
-</div>
-
----
-
-## YouTube setup (Windows)
-
-Use **Search online** beside **Search queue** to search by song or artist.
-**YouTube Music · Songs** is selected by default to search the YouTube Music song catalog;
-choose **YouTube** for general video results. Both sources use the same
-download and queue actions; no additional dependency or API key is required. Each result has
-**Play Next** and **Add to Queue**. Both download audio as M4A, embed available song
-metadata and cover art (converted to JPEG), read its metadata,
-and save it in your existing library. Play Next inserts it immediately after the
-track that is current **when the download finishes**, including with shuffle on.
-The current track keeps playing. An empty queue loads the new track paused.
-Repeat One retains its existing behavior: turn it off to advance automatically.
-
-1. Download the Windows standalone `yt-dlp.exe` from the
-   [official yt-dlp releases](https://github.com/yt-dlp/yt-dlp/releases/latest).
-2. Download a Windows FFmpeg build linked from
-   [FFmpeg's download page](https://ffmpeg.org/download.html). Extract it and find
-   `ffmpeg.exe` and `ffprobe.exe` in its `bin` folder.
-3. Place all three executables in a permanent folder, for example
-   `C:\Tools\AuraAudio`. Add that folder to your **user Path** using Windows'
-   “Edit environment variables for your account” dialog.
-4. Install [Deno](https://docs.deno.com/runtime/getting_started/installation/), and
-   ensure `deno.exe` is also on Path. YouTube's JavaScript challenges require a
-   supported runtime; the standalone yt-dlp release includes its solver scripts.
-   See the [official JavaScript setup guide](https://github.com/yt-dlp/yt-dlp/wiki/EJS).
-5. Fully quit and reopen AURA so it inherits the updated Path. Open a new PowerShell
-   window and verify:
-
-   ```powershell
-   yt-dlp --version
-   ffmpeg -version
-   ffprobe -version
-   deno --version
-   ```
-
-For source development, run `npm ci` and `npm start`. No YouTube API key is needed.
-These executables are external dependencies and are not bundled in AURA's installer.
-Local playback works without them. AURA ignores yt-dlp configuration files so custom
-output locations, playlist settings, and post-download commands cannot affect this flow.
-
-Audio is kept in **AURA Downloads** under your Windows Music folder (including a
-redirected Music folder). Files use the YouTube video ID as their filename; embedded
-metadata supplies the displayed song title. A completed download is reused when
-selected again. Downloads appear under **Library → Loose files**. Removing a source
-from AURA does not delete the downloaded audio.
-New downloads use `-f bestaudio --extract-audio --audio-format m4a --audio-quality 0
---embed-metadata --embed-thumbnail --convert-thumbnails jpg`. Available tags and
-embedded cover art are read by AURA's existing scanner. Existing MP3 files are kept;
-selecting the same result now downloads a separate M4A version.
-
-Search/download progress and errors appear inside the dialog. **Check Tools** lists installed
-executables and versions and tests FFmpeg's AAC encoder for M4A. AURA explicitly passes the
-checked FFmpeg directory to yt-dlp so conversion uses the same installation. Conversion
-failures show FFmpeg's diagnostic output instead of generic network/runtime advice.
-**Cancel** stops the active operation and cleans temporary download files. Closing the dialog lets the
-operation continue; reopen Search online to see its status. Only one operation runs at a
-time. Search times out after one minute and downloads after fifteen minutes. Failed
-downloads are not added to the library or queue; a saved file can be imported again
-if library registration fails. If YouTube returns bot, sign-in, regional, or unavailable
-video errors, try another result. For extractor or challenge failures, update yt-dlp
-(`yt-dlp -U` for the standalone executable), check Deno, and restart AURA. Only
-download audio you have permission to save.
-
-Run `npm test` for automated coverage of download staging, retry, cancellation,
-process failures, and queue insertion during playback and shuffle.
-
-## Player overview
-
-Aura is designed around a flexible two-panel desktop layout:
-
-- **Player panel** — a focused music player with rotating album art, lyrics overlay, a lightweight timeline, controls, volume, and equalizer.
-- **Queue panel** — a searchable, sortable, reorderable queue with library actions and current-track status.
-- **Collapsible mode** — the queue can collapse so Aura becomes a compact single-panel player.
-
-- **Fullscreen now-playing mode** — a distraction-free player with blurred album-art background, static cover, full controls, and large synced lyrics.
-
-The app reads local audio files, extracts metadata and album art, builds a persistent library, caches covers and lyrics in the app data folder, and keeps the actual music files untouched.
-
----
-
-
-## Features
-
-### Music library
-
-- Add individual audio files.
-- Add full folders recursively.
-- Drag and drop files or folders directly onto the app.
-- Rescan saved library sources.
-- Manage saved folders and loose files from the built-in Library modal.
-- Clear Aura's saved library sources without deleting real music files.
-- Deduplicates songs using metadata-aware scoring.
-- Caches scanned metadata so startup stays faster after the first scan.
-
-### Audio playback
-
-- Play, pause, previous, and next controls.
-- Persistent Fisher-Yates shuffle that randomizes the actual queue, not each Next action.
-- Repeat off, repeat all, and repeat one.
-- Lightweight clickable timeline seeking.
-- Drag seekbar scrubbing.
-- Volume slider with mute/unmute icon.
-- Automatic skip attempt when an audio file fails to load.
-
-### Queue
-
-- Search the queue by title, artist, album, or path.
-- Click any track to play it.
-- Remove individual tracks from the queue.
-- Clear the whole queue.
-- Drag tracks to reorder.
-- Sort by artist, album, and date added, including multi-sort priority.
-- “Play next” action for quickly moving a song after the current track.
-- Current-track visual indicator with mini equalizer animation.
-- Queue collapse/expand button that resizes the Electron window.
-- Shuffle keeps the current song first, follows the visible order sequentially, preserves Previous history, and restores original order when disabled.
-
-### Visual design
-
-- Frameless opaque Electron window with square corners.
-- Custom titlebar with minimize, maximize/restore, and close controls.
-- Manually resizable player and queue layout.
-- Expandable side-by-side queue panel.
-- Midnight and OLED color themes, remembered between launches.
-- Rotating disc-style album cover only while the focused window is playing.
-- Album-art glow and dynamic visual treatment.
-- Smooth transitions and polished interaction states.
-- App footer with copyright text.
-- Dedicated fullscreen launcher above the equalizer, without disrupting the playback-control layout.
-
-### Floating Lyrics
-
-![Aura Floating Lyrics widget](docs/screenshots/lyrics-widget.webp)
-
-- Separate frameless, transparent, always-on-top lyrics window.
-- Reuses Aura's synced lyric stack: the current line is prominent while nearby lines remain visible for context.
-- Drag the widget freely, or enable click-through so it never blocks the app beneath it.
-- Built-in previous, play/pause, and next controls remain interactive in click-through mode.
-- Remembers its enabled state, position, scale, click-through preference, and visible-line count.
-- Automatically hides while Aura is in fullscreen and returns afterward only when it was previously enabled.
-
-### Metadata and album art
-
-- Uses `music-metadata` to read common tags.
-- Reads title, artist, album, duration, year, genre, track number, disc number, bitrate, and sample rate where available.
-- Extracts embedded album art.
-- Supports sidecar cover images named after the audio file.
-- Crops and stores covers as optimized 512 × 512 JPEG files in the user data folder.
-
-### Lyrics
-
-- Searches lyrics using LRCLIB.
-- Supports synced LRC lyrics when available.
-- Falls back to plain lyrics and estimates line timing.
-- Shows previous, current, and next lyric lines over the album-art area.
-- Gives the current compact-player lyric enough space for a wrapped second line.
-- Shows six large lyric positions in fullscreen mode, with smooth directional movement and only the current line highlighted.
-- Caches lyrics permanently in the app data folder.
-- Avoids endless lookups by stopping after four attempts.
-- Double-click the cover area to refresh lyrics for the current song.
-
-### Equalizer
-
-- Built-in 5-band Web Audio equalizer.
-- Bands: Sub, Bass, Mid, Presence, and Treble.
-- Toggle EQ on/off.
-- Reset all bands.
-- Drag vertical sliders to adjust gain.
-- Double-click a band to reset that band.
-
-### System integration
-
-- Media Session API metadata support.
-- Windows/media-key style actions for play/pause, next, and previous.
-- Native fullscreen entry and exit with Esc and an in-view exit action.
-- Optional automatic fullscreen after a chosen inactivity delay.
-- Silent GitHub Releases update checks, with in-app download and restart-to-install when a newer version is available.
-- Secure preload bridge using Electron `contextBridge`.
-- Uses app data storage instead of writing generated library/cache files into the install directory.
-
----
-
-## Supported audio formats
-
-Aura scans and accepts the following extensions:
-
-```text
-.mp3, .flac, .wav, .ogg, .m4a, .aac, .opus, .wma, .aiff, .aif, .mp4, .m4b
+```powershell
+npm install
+npm run dev
 ```
 
-Sidecar cover images can use:
+`npm run dev` starts Vite and opens Electron. The Electron window is required for library access, local audio, and native window controls. Renderer edits may reload the page to keep the compatibility controller synchronized.
 
-```text
-.jpg, .jpeg, .png, .webp, .bmp
+To run the compiled renderer locally:
+
+```powershell
+npm start
 ```
 
-For sidecar covers, use the same base filename as the audio file, for example:
+## Build
 
-```text
-song-name.mp3
-song-name.jpg
+```powershell
+npm run build-win
 ```
 
-Aura also checks nearby cover folders such as `covers/`, `cover/`, and `artwork/` using the same base filename.
+Builds are grouped by version under `dist/releases/<version>/`. Current installer: `dist/releases/3.2.2/AURA-Setup-3.2.2.exe`. Run without installing using `dist/releases/3.2.2/win-unpacked/AURA.exe`, keeping that entire folder together. Older mixed build outputs are archived under `dist/archive/pre-3.2.2/`; see `dist/README.md` for deletion guidance.
 
----
+The Windows build uses temporary space under `.cache/build-temp` on the project drive. `build-win` does not publish a release. Automatic updates and `release-win` are disabled until a separate publishing destination and update feed are configured. This app does not use the original AURA GitHub release feed. macOS and Linux build scripts are retained but require their corresponding build environments.
 
-## Keyboard shortcuts
+## Your music
 
-| Shortcut | Action |
-|---|---|
-| `Space` | Play / pause |
-| `←` | Seek backward 5 seconds |
-| `→` | Seek forward 5 seconds |
-| `Alt + ←` | Previous track |
-| `Alt + →` | Next track |
-| `↑` | Volume up |
-| `↓` | Volume down |
-| `S` | Toggle shuffle |
-| `Shift + S` | Reshuffle upcoming songs while shuffle is active |
-| `R` | Cycle repeat mode |
-| `Esc` | Exit fullscreen mode or close the Library modal |
+- Windows media sessions use the self-contained .NET 8 bridge introduced in 3.2.1. A separate .NET installation is not needed to run AURA. Development builds require the .NET 8 SDK; `npm run build:native` builds the bridge, and `start`, `dev`, and `build-win` include that step automatically. If Windows media fails, expand **Connection details** and use **Open connection log**. See [bridge replacement and verification](docs/WINDOWS-MEDIA-BRIDGE.md).
+- **Touch playback sources**: use **AURA player** for the local library and queue, or **Windows media** to control a selected Windows media session. Windows mode shows scrollable app cards above an audio-output selector. Selecting a card changes the session being controlled without starting it. AURA pauses its own playback when switching to Windows mode; returning restores the queue without autoplay. Play/pause, previous/next, seek, shuffle, and repeat are enabled only when the selected app supports them. The output selector changes the Windows default output; custom per-app routes stay with those apps. Windows sound settings are available from the output panel. See [Windows media mode](docs/WINDOWS-MEDIA-MODE.md).
+- On Windows, both volume sliders and the mute button control the **system master volume** for the default output device. Windows volume keys, the taskbar slider, external mute changes, and output-device changes are reflected in AURA. Startup reads the current system level; saved player volume does not overwrite it. Other operating systems retain app volume control.
+- **Touch screen mode**: click the hand icon beside Settings in the title bar. AURA enters native fullscreen with large playback controls, artwork, a searchable queue, Play Next and Remove actions, and a vertical touch volume slider. Playback and queue state stay synchronized with the desktop player. Press Escape or use the exit button to return. Settings returns to the desktop settings panel; Add Music opens the file picker. Touch mode stays active until you exit it, including when music is paused.
+- Add files, add folders, or drop music into the window.
+- **Queue** and **Library** are separate views in the content header. Library has its own search and sorting, with Play, Play Next, and Add to Queue actions. **Music sources** opens saved folder/file management.
+- Search the queue without changing playback order. Sort by artist, album, or date added; combine sorts, and use the row menu or right-click for Play Next and removal.
+- Drag anywhere on a queue row to reorder, with a floating row, moving insertion pocket, animated reflow, and edge scrolling. Escape cancels; Alt + Up/Down on the row's reorder button provides keyboard access. Clear search and sorting before manual reordering.
+- Shuffle establishes a visible playback order. Previous/Next retain shuffle history. Right-click Shuffle or press Shift+S to reshuffle upcoming tracks.
+- The audio-settings icon opens the five-band equalizer. Use pointer or arrow keys; double-click a band or use Home to reset it.
+- Expand enters immersive artwork and lyrics. Double-click artwork to refresh lyrics.
+- Floating lyrics, click-through, scale, visible line count, automatic fullscreen, OLED mode, and reduced effects are available in Settings.
+- Settings → Appearance → Player controls switches between **Sculpted**, the shaped glass bar with a raised circular Play/Pause button, and **Classic**, the original dock. The choice saves automatically; switching keeps playback running. Sculpted is the default for profiles without a saved choice. Fullscreen retains its existing controls.
+- Discover online retains YouTube/YouTube Music search and downloads. It uses the existing external yt-dlp/FFmpeg tools; Check Tools reports their availability.
 
----
+Supported library formats: MP3, FLAC, WAV, OGG, M4A, AAC, Opus, WMA, AIFF/AIF, MP4, M4B. Actual decoding depends on Electron/Chromium codec support.
 
-## Tech stack
+## Shortcuts
 
-| Layer | Technology |
-|---|---|
-| Desktop shell | Electron |
-| Runtime | Node.js |
-| UI | HTML, CSS, JavaScript |
-| Audio playback | HTMLAudioElement |
-| Timeline | HTML/CSS progress track |
-| Equalizer | Web Audio API `BiquadFilterNode` |
-| Metadata | `music-metadata` |
-| Packaging | `electron-builder` |
-| Lyrics provider | LRCLIB |
+| Key | Action |
+| --- | --- |
+| Space | Play / pause |
+| Left / Right | Seek five seconds |
+| Alt + Left / Right | Previous / Next |
+| Up / Down | Volume |
+| S | Toggle shuffle |
+| Shift + S | Reshuffle upcoming tracks |
+| R | Cycle repeat off / all / one |
+| Esc | Exit fullscreen or close a panel |
 
----
+Sliders support arrow keys. Text fields and native controls retain their own keyboard behavior.
 
-## Installation
+## Data and architecture
 
-Aura is distributed as a ready-to-install desktop app through GitHub Releases.
+Library sources, optimized artwork, lyrics, settings, playback sessions, and Chromium storage use the independent `%APPDATA%\AURA 3.0` profile. Downloads use `Music/AURA 3.0 Downloads`. These existing storage paths are preserved across the display-name change so libraries, preferences, and downloads remain available. Removing a source never deletes music files. The internal package name is `aura-3-atmospheric`, Windows app ID is `com.aura.musicplayer3`, and product/shortcut/uninstall name is `AURA`. No original-AURA data is automatically migrated or shared.
 
-1. Go to the latest **Release** on this repository.
-2. Download the Windows installer, named `AURA-Legacy-Setup-2.4.0.exe`.
-3. Run the installer and open AURA - Legacy.
-4. Click **Files** to select songs, or **Folder** to select your music folder.
-5. Done. Aura scans your music, builds the queue, and remembers your selected library sources for next time.
+- `src/ui/`: React composition, shared virtual track lists, genuine Queue/Library navigation, material components, dialogs, and the unified `production.css` design/motion tokens.
+- `src/core/`: linked-list queue, LRC parser, Web Audio graph, restricted local-media streaming protocol.
+- `src/renderer.js`: retained playback/library/settings orchestration and UI compatibility adapter.
+- `main.js`, `preload.js`: Electron backend and isolated IPC bridge.
+- `src/floating-lyrics.*`: transparent lyric window and its lightweight material fallback.
+- `renderer-dist/`: generated, relative-path frontend used by Electron and packaging.
 
+See [AURA-3.0-REDESIGN-REPORT.md](AURA-3.0-REDESIGN-REPORT.md) for design decisions, the audit, verification evidence, and limitations. Original renderer sources and prior documentation are archived in `docs/original-renderer`.
 
----
+The production refinement is documented in [AURA-3.0-UI-REFINEMENT-REPORT.md](AURA-3.0-UI-REFINEMENT-REPORT.md), with a [before-and-after gallery](docs/ui-refinement/comparison.html). Floating lyrics now has a separate Vite entry point and shares the locally bundled Lucide icon family.
 
-## Adding music
+## Verification
 
-You can add songs in three ways:
-
-### 1. Add files
-
-Click **Files** and select one or more audio files.
-
-### 2. Add folders
-
-Click **Folder** and select one or more folders. Aura will scan audio files inside those folders recursively.
-
-### 3. Drag and drop
-
-Drop audio files or folders anywhere on the app window.
-
-Aura saves selected folders and loose files as library sources. On the next launch, it loads the saved library again.
-
----
-
-## Library manager
-
-Open **Library** from the queue panel to manage:
-
-- saved folders,
-- manually added loose files,
-- scanned songs.
-
-Removing a folder or file from the Library modal only removes it from Aura's saved sources. It does **not** delete your actual files from disk.
-
----
-
-## Building the Windows installer
-
-Run `npm run build-win` from the project folder. The installer is written to
-`dist/AURA-Legacy-Setup-<version>.exe`. This builds locally without publishing a release.
-Build temporary files are created under `.cache/build-temp` on the project's drive
-and cleaned up afterward. Keep several GB free on that drive for packaging and
-compression; this avoids filling the Windows system temporary folder when the
-project is on another drive.
-
-## Project structure
-
-```text
-aura-music-player/
-├── assets/
-│   ├── AURA-logo-icon-HQ.png
-│   └── icon.ico
-├── src/
-│   ├── index.html              # App layout and UI structure
-│   ├── renderer.js             # Playback, queue, lyrics, EQ, library UI
-│   └── styles.css              # Current app styling and animations
-├── main.js                     # Electron main process, scanning, cache, IPC
-├── preload.js                  # Secure renderer bridge
-├── package.json                # Scripts, dependencies, build config
-└── README.md
+```powershell
+npm run typecheck
+npm test
+npm run verify:electron
+npm run verify:ui
+npm run verify:alignment
 ```
 
----
+The Electron suite creates synthetic audio and independent profiles under `.cache`; it does not test against your personal library. It records results and screenshots under `docs/verification`.
 
-## App data and cache
+The focused [alignment audit](UI-ALIGNMENT-AUDIT.md) records measured geometry and pointer interaction results. Its before/after captures and bounding boxes are in `docs/alignment`.
 
-Aura stores generated data inside Electron's `userData` directory, not inside the project folder or installation directory.
+To test the Vite renderer, keep `npm run dev:renderer` running in another terminal, then run `npm run verify:dev`. After building Windows and running the Electron suite, run `npm run verify:packaged` to exercise the real unpacked executable with an isolated profile.
 
-Generated data includes:
-
-```text
-data/
-├── library.json      # Saved folders, loose files, scanned songs
-├── covers/           # Optimized cached cover images
-└── lyrics/           # Cached lyrics responses
-```
-
-This keeps the installed app cleaner and safer, especially after packaging.
-
----
-
-## Notes
-
-- Lyrics require internet access because Aura searches LRCLIB.
-- Playback itself is local once songs are added.
-- The app does not delete or modify your original music files.
-- If metadata is missing, Aura falls back to filename-based title and artist guessing.
-- First scan can take longer for large libraries because metadata and cover art need to be extracted.
-
----
-
-## Author
-
-**Kaveesha Nethmal**
-
-© 2026 Kaveesha Nethmal. All rights reserved.<div align="center">
- 
+Copyright © 2026 Kaveesha Nethmal. See [LICENSE](LICENSE).

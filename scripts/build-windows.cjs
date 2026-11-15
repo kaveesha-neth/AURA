@@ -15,6 +15,7 @@ console.log(`Build temporary files: ${tempDir}`);
 try {
   const result = spawnSync(process.execPath, [
     path.join(projectDir, 'node_modules', 'electron-builder', 'cli.js'),
+    '--config.electronDist=node_modules/electron/dist',
     '--win', '--x64', ...process.argv.slice(2),
   ], {
     cwd: projectDir,

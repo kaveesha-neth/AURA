@@ -2,10 +2,11 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const queueSource = fs.readFileSync(require('node:path').join(__dirname, '../src/core/music-queue.mjs'), 'utf8').replace('export class', 'class');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../src/renderer.js'), 'utf8');
 function setup() {
   const context = vm.createContext({});
-  const queueClass = source.slice(source.indexOf('class MusicQueue'), source.indexOf('const queue ='));
+  const queueClass = queueSource;
   const functions = source.slice(source.indexOf('function queueNodeNext'), source.indexOf('function getPrevNode'));
   const navigation = source.slice(source.indexOf('function findUpcomingShuffleNode'), source.indexOf('function queueNodeNext'));
   vm.runInContext(`${queueClass}

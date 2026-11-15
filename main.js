@@ -3,14 +3,38 @@ const path   = require('path');
 const fs     = require('fs');
 const crypto = require('crypto');
 const { createYouTubeService } = require('./youtube');
-
-// Keep the existing library and settings location when changing the display name.
-const existingUserDataPath = app.getPath('userData');
-app.setName('AURA - Legacy');
-app.setPath('userData', existingUserDataPath);
+const { APP_NAME, APP_ID, standaloneDataPath } = require('./src/core/app-identity.cjs');
+app.setName(APP_NAME);
+app.setAppUserModelId(APP_ID);
+const standaloneProfile = standaloneDataPath(app.getPath('appData'), app.commandLine.getSwitchValue('user-data-dir'));
+fs.mkdirSync(standaloneProfile, { recursive: true });
+app.setPath('userData', standaloneProfile);
+app.setPath('sessionData', standaloneProfile);
+const { registerMediaProtocol } = require('./src/core/media-protocol.cjs');
+protocol.registerSchemesAsPrivileged([{scheme:'aura-media',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true,corsEnabled:true}}]);
+const approvedMediaPaths = new Set();
+const mediaPathKey = file => path.resolve(file).toLowerCase();
 
 let mm; // music-metadata loaded lazily after app ready
 let mainWindow;
+const { MasterVolume } = require('./src/core/master-volume.cjs');
+const masterVolume = new MasterVolume();
+const { WindowsMedia } = require('./src/core/windows-media.cjs');
+const windowsMedia = new WindowsMedia();
+const windowsMediaLog = path.join(app.getPath('userData'), 'logs', 'windows-media.log');
+windowsMedia.on('diagnostic', message => {
+  try {
+    fs.mkdirSync(path.dirname(windowsMediaLog), { recursive: true });
+    if (fs.existsSync(windowsMediaLog) && fs.statSync(windowsMediaLog).size > 256 * 1024) fs.writeFileSync(windowsMediaLog, '');
+    fs.appendFileSync(windowsMediaLog, `${new Date().toISOString()} ${message}\n`, 'utf8');
+  } catch { /* Diagnostic storage must not interrupt playback. */ }
+});
+windowsMedia.on('change', value => {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('windows-media-changed', value);
+});
+masterVolume.on('change', value => {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('master-volume-changed', value);
+});
 let floatingLyricsWindow;
 let windowedBounds = null;
 let wasMaximizedBeforeFullscreen = false;
@@ -83,7 +107,7 @@ function safeMusicPath() {
   catch { return app.getPath('home'); }
 }
 
-const youtube = createYouTubeService({ downloadDir: path.join(safeMusicPath(), 'AURA Downloads') });
+const youtube = createYouTubeService({ downloadDir: path.join(safeMusicPath(), 'AURA 3.0 Downloads') });
 let youtubeImportInFlight = false;
 
 function normalizeFloatingLyricsBounds(bounds) {
@@ -126,6 +150,8 @@ function setUpdateState(next) {
 }
 
 function configureAutoUpdater() {
+  // This standalone app must never consume the original AURA release feed.
+  if (!require('./package.json').aura?.updatesEnabled) return;
   if (!app.isPackaged || updaterConfigured) return;
   try {
     ({ autoUpdater } = require('electron-updater'));
@@ -263,6 +289,8 @@ function readLibrary() {
 }
 
 function writeLibrary(library) {
+  for(const song of library.songs || [])if(song.filePath)approvedMediaPaths.add(mediaPathKey(song.filePath));
+  for(const song of library.songs || [])if(song.coverPath)approvedMediaPaths.add(mediaPathKey(song.coverPath));
   const clean = {
     version: LIBRARY_VERSION,
     updatedAt: Date.now(),
@@ -928,7 +956,8 @@ function createFloatingLyricsWindow(settings = readSettings()) {
   });
 
   floatingLyricsWindow.setAlwaysOnTop(true, 'floating');
-  floatingLyricsWindow.loadFile(path.join(__dirname, 'src', 'floating-lyrics.html'));
+  if(!app.isPackaged && process.env.AURA_RENDERER_URL==='http://127.0.0.1:5173')floatingLyricsWindow.loadURL(process.env.AURA_RENDERER_URL+'/floating-lyrics.html');
+  else floatingLyricsWindow.loadFile(path.join(__dirname, 'renderer-dist', 'floating-lyrics.html'));
   floatingLyricsWindow.webContents.on('did-finish-load', () => {
     sendFloatingLyricsState();
     sendFloatingLyricsPlaybackState();
@@ -979,7 +1008,7 @@ function createWindow() {
   // that first paint to the saved theme so OLED never flashes Midnight navy.
   const initialTheme = readSettings().theme;
   mainWindow = new BrowserWindow({
-    width: PANEL_W * 2,
+    width: 1120,
     height: WIN_H,
     minWidth: 750,
     minHeight: 600,
@@ -987,18 +1016,19 @@ function createWindow() {
     frame: false,
     transparent: false,
     titleBarStyle: 'hidden',
-    backgroundColor: initialTheme === 'oled' ? '#050506' : '#030417',
+    backgroundColor: initialTheme === 'oled' ? '#000000' : '#101013',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
-      webSecurity: false,
+      webSecurity: true,
     },
     icon: path.join(__dirname, 'assets', 'AURA-logo-icon-HQ.png'),
     show: false,
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
+  if (!app.isPackaged && process.env.AURA_RENDERER_URL === 'http://127.0.0.1:5173') mainWindow.loadURL(process.env.AURA_RENDERER_URL);
+  else mainWindow.loadFile(path.join(__dirname, 'renderer-dist', 'index.html'));
   mainWindow.once('ready-to-show', () => mainWindow.show());
   mainWindow.on('focus', () => mainWindow?.webContents.send('window-focus-changed', true));
   mainWindow.on('blur', () => mainWindow?.webContents.send('window-focus-changed', false));
@@ -1031,7 +1061,6 @@ function createWindow() {
       navigator.mediaSession.setActionHandler('pause',         () => window.dispatchEvent(new Event('media-play-pause')));
       navigator.mediaSession.setActionHandler('nexttrack',     () => window.dispatchEvent(new Event('media-next')));
       navigator.mediaSession.setActionHandler('previoustrack', () => window.dispatchEvent(new Event('media-prev')));
-      navigator.mediaSession.setActionHandler('shuffle', null);
     `).catch(() => {});
     mainWindow.webContents.send('window-focus-changed', mainWindow.isFocused() && !mainWindow.isMinimized());
     mainWindow.webContents.send('window-maximized-changed', mainWindow.isMaximized());
@@ -1044,9 +1073,14 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  protocol.registerFileProtocol('localfile', (req, cb) => {
-    const fp = decodeURIComponent(req.url.replace(/^localfile:\/\/\/?/, ''));
-    cb({ path: fp });
+  masterVolume.start();
+  for(const song of readLibrary().songs)if(song.filePath)approvedMediaPaths.add(mediaPathKey(song.filePath));
+  for(const song of readLibrary().songs)if(song.coverPath)approvedMediaPaths.add(mediaPathKey(song.coverPath));
+  registerMediaProtocol(file => {
+    const extension = path.extname(file).toLowerCase();
+    if(approvedMediaPaths.has(mediaPathKey(file)))return AUDIO_EXTS.includes(extension)||COVER_EXTS.includes(extension);
+    const relative=path.relative(COVERS_DIR,path.resolve(file));
+    return relative && !relative.startsWith('..') && !path.isAbsolute(relative) && COVER_EXTS.includes(extension);
   });
   createWindow();
   syncFloatingLyricsWindow();
@@ -1061,6 +1095,8 @@ app.on('activate', () => {
   }
 });
 app.on('before-quit', () => {
+  masterVolume.stop();
+  windowsMedia.stop();
   isQuitting = true;
   youtube.cancel();
   if (updateCheckTimer) clearTimeout(updateCheckTimer);
@@ -1273,11 +1309,39 @@ ipcMain.handle('refresh-lyrics', async (event, song) => {
 });
 
 ipcMain.handle('path-to-url', (event, filePath) => {
-  const norm = filePath.replace(/\\/g, '/');
-  return norm.startsWith('/') ? `file://${norm}` : `file:///${norm}`;
+  return filePath ? `aura-media://media/${encodeURIComponent(filePath)}` : '';
 });
 
 // Window controls
+ipcMain.handle('get-windows-media', event => {
+  assertYouTubeSender(event); windowsMedia.start(); return windowsMedia.state;
+});
+ipcMain.handle('open-windows-media-log', async event => {
+  assertYouTubeSender(event);
+  fs.mkdirSync(path.dirname(windowsMediaLog), { recursive: true });
+  if (!fs.existsSync(windowsMediaLog)) fs.writeFileSync(windowsMediaLog, 'No Windows media connection errors recorded.\n');
+  return require('electron').shell.openPath(windowsMediaLog);
+});
+ipcMain.handle('windows-media-command', (event, command) => {
+  assertYouTubeSender(event); return windowsMedia.command(command);
+});
+ipcMain.handle('select-audio-output', (event, id) => {
+  assertYouTubeSender(event); return masterVolume.selectOutput(id);
+});
+ipcMain.handle('open-sound-settings', async event => {
+  assertYouTubeSender(event);
+  if (process.platform === 'win32') await require('electron').shell.openExternal('ms-settings:sound');
+});
+ipcMain.handle('get-master-volume', event => {
+  assertYouTubeSender(event);
+  return masterVolume.state;
+});
+ipcMain.on('set-master-volume', (event, value) => {
+  if (mainWindow && event.sender === mainWindow.webContents && event.senderFrame === mainWindow.webContents.mainFrame) masterVolume.setVolume(value);
+});
+ipcMain.on('toggle-master-mute', event => {
+  if (mainWindow && event.sender === mainWindow.webContents && event.senderFrame === mainWindow.webContents.mainFrame) masterVolume.toggleMute();
+});
 ipcMain.on('win-minimize', () => mainWindow?.minimize());
 ipcMain.on('win-close',    () => mainWindow?.close());
 ipcMain.on('win-toggle-maximize', () => {
@@ -1314,4 +1378,13 @@ ipcMain.handle('get-cover-base64', async (event, coverPath) => {
   } catch {
     return null;
   }
+});
+
+const PLAYER_STATE_FILE = path.join(DATA_DIR, 'player-state.json');
+ipcMain.handle('get-player-state', () => {try{return JSON.parse(fs.readFileSync(PLAYER_STATE_FILE,'utf8'));}catch{return null;}});
+ipcMain.handle('save-player-state', (event, value) => {
+  if(event.sender!==mainWindow?.webContents || !value || !Array.isArray(value.order))return;
+  const encoded=JSON.stringify(value);
+  if(encoded.length>8_000_000)return;
+  const temporary=PLAYER_STATE_FILE+'.tmp';fs.writeFileSync(temporary,encoded);fs.renameSync(temporary,PLAYER_STATE_FILE);
 });
