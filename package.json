@@ -1,55 +1,86 @@
 {
-  "name": "aura-music-player",
-  "version": "2.4.0",
-  "description": "AURA - Legacy: v2.4.0 local music player",
+  "name": "aura-3-atmospheric",
+  "version": "3.2.2",
+  "description": "AURA — Atmospheric Liquid Glass music player",
   "author": "Kaveesha Nethmal",
   "main": "main.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kaveesha-neth/AURA.git"
+  "aura": {
+    "updatesEnabled": false
   },
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "start": "electron .",
-    "dev": "electron . --dev",
-    "build-win": "node scripts/build-windows.cjs --publish never",
-    "release-win": "node scripts/build-windows.cjs --publish always",
-    "build-mac": "electron-builder --mac",
-    "build-linux": "electron-builder --linux"
+    "start": "npm run build:native && npm run build:renderer && electron .",
+    "dev": "npm run build:native && node scripts/dev.cjs",
+    "build-win": "npm run build:native && npm run build:renderer && node scripts/build-windows.cjs --publish never",
+    "build:native": "node scripts/build-native.cjs",
+    "release-win": "node scripts/release-disabled.cjs",
+    "build-mac": "npm run build:renderer && electron-builder --mac",
+    "build-linux": "npm run build:renderer && electron-builder --linux",
+    "dev:renderer": "vite",
+    "build:renderer": "vite build",
+    "typecheck": "tsc --noEmit",
+    "verify:electron": "npm run build:renderer && node scripts/run-verification.cjs",
+    "verify:dev": "node scripts/run-verification.cjs --dev",
+    "verify:packaged": "node scripts/verify-packaged.cjs",
+    "verify:ui": "npm run build:renderer && node scripts/run-verification.cjs --visual-audit",
+    "verify:alignment": "npm run build:renderer && node scripts/run-verification.cjs --alignment",
+    "verify:controls": "npm run build:renderer && node scripts/run-verification.cjs --controls"
   },
   "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
     "electron": "^41.2.1",
-    "electron-builder": "^27.0.0-alpha.8"
+    "electron-builder": "^26.18.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.7"
   },
   "build": {
-    "appId": "com.aura.musicplayer",
-    "productName": "AURA - Legacy",
-    "artifactName": "AURA-Legacy-Setup-${version}.${ext}",
-    "publish": {
-      "provider": "github",
-      "owner": "kaveesha-neth",
-      "repo": "AURA",
-      "releaseType": "release",
-      "tagNamePrefix": "v"
-    },
+    "appId": "com.aura.musicplayer3",
+    "productName": "AURA",
+    "artifactName": "AURA-Setup-${version}.${ext}",
+    "publish": null,
     "directories": {
-      "output": "dist"
+      "output": "dist/releases/${version}"
     },
     "files": [
       "main.js",
       "youtube.js",
       "preload.js",
       "lyrics-overlay-preload.js",
-      "src/**/*",
-      "assets/**/*"
+      "assets/**/*",
+      "renderer-dist/**/*",
+      "src/core/*.cjs",
+      "src/core/*.ps1"
+    ],
+    "asarUnpack": [
+      "src/core/*.ps1"
     ],
     "win": {
+      "extraResources": [
+        {
+          "from": "resources/windows-media",
+          "to": "windows-media",
+          "filter": [
+            "AuraMediaBridge.exe"
+          ]
+        }
+      ],
       "target": "nsis",
+      "executableName": "AURA",
       "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "shortcutName": "AURA",
+      "uninstallDisplayName": "AURA"
     }
   },
   "dependencies": {
     "electron-updater": "^6.8.9",
-    "music-metadata": "^7.14.0"
+    "glisse": "^0.5.0",
+    "lucide-react": "^1.70.0",
+    "music-metadata": "^12.3.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

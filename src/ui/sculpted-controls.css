@@ -1,0 +1,163 @@
+/* Alternate transport geometry. Existing buttons and engine bindings stay mounted. */
+.sculpted-material,
+.sculpted-skip {
+  display: none;
+}
+.sculpted-definitions {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.controls-style-segments {
+  --lg-tab-width: 64px;
+}
+html[data-controls="sculpted"] .transport-dock {
+  width: min(100%, 400px);
+  height: 84px;
+  grid-template-columns: 48px minmax(28px, 1fr) 64px minmax(28px, 1fr) 48px;
+  gap: 8px;
+  padding: 0;
+  margin: 12px auto;
+  border-radius: 0;
+  background: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none;
+  --lg-rim-shine: 0;
+  isolation: isolate;
+}
+html[data-controls="sculpted"] .transport-dock::before,
+html[data-controls="sculpted"] .transport-dock::after {
+  display: none;
+}
+html[data-controls="sculpted"] .transport-dock .sculpted-material {
+  display: block;
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+  --lg-glass: #b9aecb19;
+  --lg-glass-bend: 0.8;
+  --lg-glass-dispersion: 0.12;
+  --lg-rim-shine: 0.4;
+  --lg-blur: 8px;
+}
+html[data-controls="sculpted"] .transport-dock .sculpted-bridge,
+html[data-controls="sculpted"] .transport-dock .sculpted-contour-edge {
+  left: 56px;
+  right: 56px;
+  top: 0;
+  height: 84px;
+  width: calc(100% - 112px);
+}
+html[data-controls="sculpted"] .transport-dock .sculpted-bridge {
+  border-radius: 0;
+  background-image: linear-gradient(
+    175deg,
+    #f2e8ff28 0%,
+    #b8a3ce05 30%,
+    #07050d08 65%,
+    #cfc0e01e 100%
+  );
+  box-shadow: none;
+}
+html[data-controls="sculpted"] .transport-dock .sculpted-side {
+  top: 15px;
+  width: 48px;
+  height: 54px;
+  border-radius: 20px;
+  background-image: linear-gradient(
+    155deg,
+    #f5edff29,
+    #9d86be04 38%,
+    #d4caea11
+  );
+  box-shadow:
+    inset 0 1px 1px #f4eaff50,
+    inset 0 -1px 1px #c9b5db30,
+    0 5px 12px #0002;
+}
+html[data-controls="sculpted"] .sculpted-shuffle {
+  left: 0;
+}
+html[data-controls="sculpted"] .sculpted-repeat {
+  right: 0;
+}
+html[data-controls="sculpted"] .transport-dock > .icon-button {
+  width: 48px;
+  height: 48px;
+  justify-self: center;
+  color: #ece7f3;
+  border-radius: 18px;
+}
+html[data-controls="sculpted"]
+  .transport-dock
+  > .icon-button:is(#btn-shuffle, #btn-repeat) {
+  height: 54px;
+}
+html[data-controls="sculpted"] .transport-dock .classic-skip {
+  display: none;
+}
+html[data-controls="sculpted"] .transport-dock .sculpted-skip {
+  display: block;
+  width: 24px;
+  height: 24px;
+  stroke-width: 1.1;
+}
+html[data-controls="sculpted"] .transport-dock > .play-button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  color: #251e31;
+  background:
+    radial-gradient(ellipse at 30% 16%, #f6f0ffb8, transparent 55%),
+    linear-gradient(145deg, #cfc5e0eb, #b8accbe8 65%, #e1d8eae8);
+  box-shadow:
+    inset 0 1px 2px #fff9,
+    inset 0 -1px 2px #f3eaff80,
+    0 0 0 1px #d7cde947,
+    0 5px 14px #0905104d;
+  --lg-glass-bend: 0.9;
+  --lg-rim-shine: 0.4;
+}
+html[data-controls="sculpted"] .transport-dock > .play-button::before {
+  content: "";
+  position: absolute;
+  width: 35%;
+  height: 12%;
+  left: 15%;
+  top: 12%;
+  border-radius: 50%;
+  background: #fff9;
+  transform: rotate(-38deg);
+  filter: blur(0.4px);
+  pointer-events: none;
+}
+html[data-controls="sculpted"] .transport-dock > .play-button:hover {
+  filter: brightness(1.08);
+}
+html[data-controls="sculpted"] .transport-dock .play-button svg {
+  width: 26px !important;
+  height: 26px !important;
+}
+html[data-controls="sculpted"] .transport-dock .active {
+  color: #d8c7f7;
+}
+html[data-controls="sculpted"] .transport-dock .btn-dot {
+  bottom: 7px;
+}
+html[data-controls="sculpted"]
+  .transport-dock
+  > .icon-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+html[data-effects="reduced"][data-controls="sculpted"]
+  .transport-dock
+  .sculpted-bridge {
+  background-color: #2a2533 !important;
+}
+html[data-effects="reduced"][data-controls="sculpted"]
+  .transport-dock
+  .sculpted-side {
+  background-color: #292532 !important;
+}

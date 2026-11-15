@@ -41,6 +41,13 @@ body:active {
   overflow: hidden;
   text-align: center;
   font-family: Inter, "Segoe UI Variable", "Segoe UI", sans-serif;
+  border-radius: 24px;
+  background: radial-gradient(
+    ellipse at 50% 55%,
+    rgba(15, 22, 33, 0.74),
+    rgba(10, 16, 24, 0.38) 55%,
+    transparent 78%
+  );
 }
 
 .floating-lyric {
@@ -48,23 +55,26 @@ body:active {
   max-height: 2.36em;
   margin: 0;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.34);
+  color: rgba(205, 220, 242, 0.55);
   font-size: var(--floating-side-size);
-  font-weight: 800;
+  font-weight: 500;
   line-height: 1.18;
   letter-spacing: -0.025em;
   opacity: 0.66;
   text-shadow: 0 1px 5px rgba(0, 0, 0, 0.64);
   text-overflow: ellipsis;
-  transition: color 220ms ease, opacity 220ms ease, transform 220ms ease;
+  transition:
+    color 220ms ease,
+    opacity 220ms ease,
+    transform 220ms ease;
 }
 
 .floating-lyric.current {
   max-height: none;
   overflow: visible;
-  color: #fff;
+  color: #f1f5ff;
   font-size: var(--floating-current-size);
-  font-weight: 900;
+  font-weight: 600;
   white-space: pre-line;
   opacity: 1;
   /* text-shadow: 0 2px 4px rgba(0, 0, 0, 0.98), 0 7px 26px rgba(0, 0, 0, 0.92); */
@@ -89,13 +99,19 @@ body:active {
   height: var(--floating-control-size);
   padding: 0;
   place-items: center;
-  border: 1.25px solid rgba(255, 255, 255, 0.68);
+  border: 0;
   border-radius: 50%;
-  background: transparent;
+  background: rgba(86, 108, 145, 0.23);
+  box-shadow:
+    inset 0 1px 0 rgba(231, 240, 255, 0.16),
+    inset 0 -1px 0 rgba(164, 191, 233, 0.08);
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
   -webkit-app-region: no-drag;
-  transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
 }
 
 .floating-lyrics-control:hover,
@@ -103,7 +119,8 @@ body:active {
   border-color: #fff;
   color: #fff;
   outline: none;
-  transform: scale(1.06);
+  background: rgba(124, 146, 181, 0.3);
+  outline: 1px solid rgba(207, 224, 255, 0.5);
 }
 
 .floating-lyrics-control:active {
@@ -113,14 +130,16 @@ body:active {
 .floating-lyrics-control svg {
   width: 64%;
   height: 64%;
-  fill: currentColor;
+  fill: none;
+  stroke-width: 1.7;
 }
 
 .floating-lyrics-play {
   width: var(--floating-play-size);
   height: var(--floating-play-size);
-  border-color: rgba(255, 255, 255, 0.88);
-  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #17202e;
+  background: #d4def0;
 }
 
 .floating-icon-pause {
@@ -149,11 +168,42 @@ body:active {
 }
 
 @keyframes floating-lyric-forward {
-  from { opacity: 0; transform: translateY(18px); }
-  to { transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 @keyframes floating-lyric-backward {
-  from { opacity: 0; transform: translateY(-18px); }
-  to { transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.floating-lyrics-play > span {
+  display: contents;
+}
+.floating-icon-play,
+.floating-icon-pause {
+  fill: currentColor !important;
+}
+.floating-lyrics-control:focus-visible {
+  outline: 2px solid #c8d8f3;
+  outline-offset: 4px;
 }

@@ -1,0 +1,8 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../docs/alignment');
+const figure = (folder, name) => `<figure><a href="${folder}/${name}.png"><img src="${folder}/${name}.png" alt="${folder}: ${name}" loading="lazy"></a><figcaption>${folder}: ${name}</figcaption></figure>`;
+const widths = [1400, 1120, 960, 750];
+const states = fs.readdirSync(path.join(root, 'after')).filter(file => file.endsWith('.png'));
+fs.writeFileSync(path.join(root, 'comparison.html'), `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AURA alignment audit</title><style>body{margin:32px;background:#10141b;color:#e8edf6;font:14px/1.5 system-ui}main{max-width:1600px;margin:auto}.pair,.states{display:grid;grid-template-columns:1fr 1fr;gap:24px}figure{margin:0;min-width:0}img{max-width:100%;height:auto;max-height:660px;object-fit:contain;display:block}figcaption{color:#a7b4c8;padding:10px 0}section{margin:40px 0}@media(max-width:800px){.pair,.states{grid-template-columns:1fr}}</style><main><h1>AURA alignment audit</h1><p>Actual Electron captures with an isolated synthetic library. Click images for full resolution. Bounding boxes are recorded in before/geometry.json and after/geometry.json.</p>${widths.map(width=>`<section><h2>${width} px native window</h2><div class="pair">${figure('before','alignment-'+width)}${figure('after','alignment-'+width)}</div></section>`).join('')}<section><h2>Interaction and secondary states</h2><div class="states">${states.filter(name=>!name.startsWith('alignment-')).map(name=>figure('after',name.slice(0,-4))).join('')}</div></section></main></html>`);
+console.log('Generated docs/alignment/comparison.html');

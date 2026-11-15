@@ -1,34 +1,96 @@
-# Dependencies
+# Dependencies and tool caches
 node_modules/
+/.cache/
+.vite/
+*.tsbuildinfo
 
-# Build output
-dist/
+# Generated renderer, installers, release archives, and native helpers
+# Keep native source (.cs/.csproj) and src/core/*.ps1 in Git.
+/dist/
+/renderer-dist/
+/resources/windows-media/
+/native/**/bin/
+/native/**/obj/
 
-# Electron builder cache
-.cache/
+# Local environment, credentials, and signing material
+.env
+.env.*
+!.env.example
+!.env.*.example
+.envrc
+/.aws/
+/.npmrc
+*.pem
+*.key
+*.pfx
+*.p12
+*.snk
 
-# App data / generated files
-data/
-songs/
-zips/
+# Personal library, downloaded music, and generated metadata/artwork/lyrics
+/data/
+/songs/
 
+# Generated UI audits: screenshots, state dumps, results, and galleries
+# Match generated file types so maintained documentation stays trackable.
+# Curated images in docs/screenshots are unaffected.
+/docs/verification/**/*.png
+/docs/verification/**/*.json
+/docs/alignment/**/*.png
+/docs/alignment/**/*.json
+/docs/alignment/comparison.html
+/docs/ui-refinement/**/*.png
+/docs/ui-refinement/**/*.json
+/docs/ui-refinement/comparison.html
+/docs/segments/**/*.png
+/docs/segments/**/*.json
+/docs/windows-media/**/*.png
+/docs/windows-media/**/*.json
+/docs/controls-style/**/*.png
+/docs/controls-style/**/*.json
 
-# Logs
+# Historical renderer copies (keep implementation/comparison reports in Git)
+/docs/original-renderer/
+
+# Test/coverage output (keep test code and intentional fixtures)
+/coverage/
+/.nyc_output/
+/test-results/
+/playwright-report/
+
+# Local backups, archives, and scratch/debug files
+/backup/
+/backups/
+/zips/
+/{songs,src}/
+/uncollapsablequeue/
+/debug-scan.js
+/test-meta.js
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# Runtime and package-manager logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Zip archives
-*.zip
+# Machine-specific editor settings
+/.vs/
+/.idea/
+*.suo
+*.user
 
-# OS files
+# Operating-system metadata
 .DS_Store
+._*
 Thumbs.db
+Desktop.ini
 desktop.ini
-
-# Misc junk
-{songs,src}/
-debug-scan.js
-test-meta.js
-backup/
-
-uncollapsablequeue/
+$RECYCLE.BIN/
