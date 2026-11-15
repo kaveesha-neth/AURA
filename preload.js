@@ -1,6 +1,10 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  searchYouTube: (query, source) => ipcRenderer.invoke('youtube-search', query, source),
+  downloadYouTube: (id) => ipcRenderer.invoke('youtube-download', id),
+  cancelYouTube: () => ipcRenderer.invoke('youtube-cancel'),
+  checkYouTubeTools: () => ipcRenderer.invoke('youtube-check-tools'),
   scanLibrary:   ()      => ipcRenderer.invoke('scan-library'),
   rescanLibrary: ()      => ipcRenderer.invoke('rescan-library'),
   openAndScan:   ()      => ipcRenderer.invoke('open-and-scan'),
@@ -29,6 +33,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toggleMaximize: () => ipcRenderer.send('win-toggle-maximize'),
   setFullscreen: (enabled) => ipcRenderer.send('win-set-fullscreen', enabled),
   setWidth: (w) => ipcRenderer.send('win-set-width', w),
+});
+
+ipcRenderer.on('youtube-progress', (event, message) => {
+  window.dispatchEvent(new CustomEvent('youtube-progress', { detail: message }));
 });
 
 // Media key forwarding
