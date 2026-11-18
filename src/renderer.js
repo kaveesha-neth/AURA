@@ -404,24 +404,7 @@ function setLyricsLines(lines, type, statusText = "") {
 }
 
 function findActiveLyricIndex(time) {
-  const lines = state.lyrics.lines;
-  if (!lines.length) return -1;
-
-  let lo = 0;
-  let hi = lines.length - 1;
-  let ans = -1;
-
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    if (lines[mid].time <= time + 0.08) {
-      ans = mid;
-      lo = mid + 1;
-    } else {
-      hi = mid - 1;
-    }
-  }
-
-  return ans < 0 ? 0 : ans;
+  return window.AuraDomain.activeLyricIndex(state.lyrics.lines, time);
 }
 
 function updateLyricsOverlay(time, force = false) {

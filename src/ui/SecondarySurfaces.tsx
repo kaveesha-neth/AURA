@@ -20,6 +20,7 @@ import {
 } from "./materials";
 import { useLibrary } from "./library-store";
 import { TrackList } from "./TrackList";
+import { SessionLyricsSettings } from "./session-lyrics-preferences";
 type Option = { value: string; label: string };
 function Preference({
   id,
@@ -369,6 +370,7 @@ export function Secondary({ children }: { children?: ReactNode }) {
             />
           </div>
         </section>
+        <SessionLyricsSettings />
         <footer className="settings-about">
           <span>About AURA</span>
           <span id="settings-version" />

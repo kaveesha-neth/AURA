@@ -19,16 +19,17 @@ import { ContentBrowser } from "./ContentBrowser";
 import { Secondary } from "./SecondarySurfaces";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { TouchPlayer } from "./TouchPlayer";
+import { SessionLyricsPreferencesProvider } from "./session-lyrics-preferences";
 import { observePlayerLayout } from "./layout";
 import { MusicQueue } from "../core/music-queue.mjs";
-import { parseLRC, parseLRCTime } from "../core/lyrics.mjs";
+import { parseLRC, parseLRCTime, activeLyricIndex } from "../core/lyrics.mjs";
 import { EqualizerEngine } from "../core/equalizer.mjs";
 import { mediaUrl } from "../core/media-url.mjs";
 import "./library-store";
 import controllerUrl from "../renderer.js?url";
 import onlineUrl from "../youtube-ui.js?url";
 Object.assign(window, {
-  AuraDomain: { MusicQueue, parseLRC, parseLRCTime, EqualizerEngine, mediaUrl },
+  AuraDomain: { MusicQueue, parseLRC, parseLRCTime, activeLyricIndex, EqualizerEngine, mediaUrl },
 });
 export function App() {
   const [controlsStyle, setControlsStyle] = useState(() =>
@@ -85,6 +86,7 @@ export function App() {
     return stop;
   }, []);
   return (
+    <SessionLyricsPreferencesProvider>
     <div id="root">
       <div id="player-bg" className="ambient-background">
         <img id="ambient-art" alt="" aria-hidden="true" />
@@ -189,5 +191,6 @@ export function App() {
       </div>
       <audio id="audio" crossOrigin="anonymous" />
     </div>
+    </SessionLyricsPreferencesProvider>
   );
 }
