@@ -210,6 +210,11 @@ svg.lucide {
 .icon-button.active {
   color: var(--accent);
 }
+/* Disable Glisse's click-position glow, including on pressed liquid buttons.
+   Keep its glass material, hover feedback and spring animations. */
+.lg-glass::after {
+  content: none !important;
+}
 .aura-material {
   --lg-glass-bend: 0.55;
   --lg-glass-dispersion: 0.14;
@@ -1376,6 +1381,11 @@ html[data-input="keyboard"] .lg-input:has(input:focus-visible) {
 }
 .settings-range {
   margin-top: 16px;
+}
+.settings-preference-error {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 11px;
 }
 .settings-range label {
   display: flex;

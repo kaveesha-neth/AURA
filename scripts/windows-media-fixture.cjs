@@ -44,3 +44,19 @@ class MediaFixture extends EventEmitter {
 }
 require('../src/core/windows-media.cjs');
 require.cache[require.resolve('../src/core/windows-media.cjs')].exports = { WindowsMedia: MediaFixture };
+
+// Deterministic LRCLIB responses exercise the real IPC/cache/parser without network.
+const originalFetch = global.fetch;
+global.__lyricsRequests = [];
+global.fetch = async (url, options) => {
+  if (!String(url).startsWith('https://lrclib.net/')) return originalFetch(url, options);
+  const query = new URL(url);
+  const title = query.searchParams.get('track_name') || query.searchParams.get('q') || '';
+  global.__lyricsRequests.push(title);
+  if (title.includes('Delayed track')) await new Promise(resolve => { global.__releaseLyrics = resolve; });
+  if (title.includes('Failed track')) return { ok: false, status: 503 };
+  if (title.includes('Missing track')) return query.pathname.endsWith('/search')
+    ? { ok: true, json: async () => [] } : { ok: false, status: 404 };
+  return { ok: true, json: async () => ({ instrumental: title.includes('Instrumental track'),
+    syncedLyrics: '[00:00]Opening line\n[01:10]Previous line\n[01:15]Current line\n[01:20]Upcoming line\n[01:30]After the quiet\n[03:20]Final line' }) };
+};
