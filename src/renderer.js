@@ -304,6 +304,13 @@ function setLyricsVisual(
   status = "",
   transition = "none",
 ) {
+  window.auraLyricsRender?.({
+    track: state.currentNode?.song.filePath || "",
+    lines: state.lyrics.lines,
+    activeIndex: state.lyrics.type === "synced" ? state.lyrics.activeIndex : -1,
+    type: state.lyrics.type,
+    message: state.lyrics.lines.length ? "" : cur || "No track selected",
+  });
   if (!lyricsOverlay) return;
   lyricsPrev.textContent = prev;
   lyricsCurrent.textContent = cur;
@@ -362,6 +369,9 @@ function updateFullscreenLyrics(fallback = "") {
 }
 
 function resetLyricsOverlay(message = "") {
+  // Clearing playback also invalidates any outstanding request for that track.
+  ++state.lyrics.requestId;
+  state.lyrics.loading = false;
   state.lyrics.lines = [];
   state.lyrics.activeIndex = -1;
   state.lyrics.type = "none";
@@ -373,6 +383,8 @@ function resetLyricsOverlay(message = "") {
 
 function showLyricsLoading() {
   state.lyrics.loading = true;
+  state.lyrics.type = "none";
+  state.lyrics.status = "loading";
   state.lyrics.lines = [];
   state.lyrics.activeIndex = -1;
   setLyricsVisual("", "Finding lyrics…", "", "");
@@ -404,24 +416,7 @@ function setLyricsLines(lines, type, statusText = "") {
 }
 
 function findActiveLyricIndex(time) {
-  const lines = state.lyrics.lines;
-  if (!lines.length) return -1;
-
-  let lo = 0;
-  let hi = lines.length - 1;
-  let ans = -1;
-
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    if (lines[mid].time <= time + 0.08) {
-      ans = mid;
-      lo = mid + 1;
-    } else {
-      hi = mid - 1;
-    }
-  }
-
-  return ans < 0 ? 0 : ans;
+  return window.AuraDomain.activeLyricIndex(state.lyrics.lines, time);
 }
 
 function updateLyricsOverlay(time, force = false) {
@@ -461,7 +456,11 @@ async function loadLyricsForSong(song, force = false) {
 
     if (requestId !== state.lyrics.requestId) return;
 
-    if (!payload || payload.status === "loading") {
+    if (!payload || payload.status === "error") {
+      resetLyricsOverlay("Lyrics unavailable");
+      return;
+    }
+    if (payload.status === "loading") {
       resetLyricsOverlay("Lyrics downloading…");
       return;
     }
@@ -492,8 +491,10 @@ async function loadLyricsForSong(song, force = false) {
       resetLyricsOverlay("Lyrics unavailable");
     console.warn("[loadLyricsForSong]", e);
   } finally {
-    if (requestId === state.lyrics.requestId) state.lyrics.loading = false;
-    lyricsOverlay?.classList.remove("lyrics-loading");
+    if (requestId === state.lyrics.requestId) {
+      state.lyrics.loading = false;
+      lyricsOverlay?.classList.remove("lyrics-loading");
+    }
   }
 }
 
@@ -2134,6 +2135,7 @@ btnQueueToggle.addEventListener("click", () => setQueueVisible(!queueVisible));
 
 // AUDIO EVENTS
 audio.addEventListener("timeupdate", updateSeek);
+audio.addEventListener("seeked", () => updateLyricsOverlay(audio.currentTime));
 audio.addEventListener("loadedmetadata", () => {
   timeTot.textContent = fmtTime(audio.duration);
   fullscreenTimeTotal.textContent = fmtTime(audio.duration);

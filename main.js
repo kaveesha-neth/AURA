@@ -209,6 +209,14 @@ async function checkForUpdates() {
   return getUpdateState();
 }
 
+function normalizeWindowsLyricsFontSize(value) {
+  return Number.isFinite(Number(value)) ? Math.max(18, Math.min(48, Math.round(Number(value) / 2) * 2)) : 32;
+}
+
+function normalizeWindowsLyricsVisibleLines(value) {
+  return [1, 3, 5, 7].includes(Number(value)) ? Number(value) : 3;
+}
+
 function readSettings() {
   try {
     const settings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
@@ -222,6 +230,8 @@ function readSettings() {
       floatingLyricsScale: normalizeFloatingLyricsScale(settings?.floatingLyricsScale),
       floatingLyricsVisibleLineCount: normalizeFloatingLyricsVisibleLineCount(settings?.floatingLyricsVisibleLineCount),
       floatingLyricsBounds: normalizeFloatingLyricsBounds(settings?.floatingLyricsBounds),
+      windowsLyricsFontSize: normalizeWindowsLyricsFontSize(settings?.windowsLyricsFontSize),
+      windowsLyricsVisibleLines: normalizeWindowsLyricsVisibleLines(settings?.windowsLyricsVisibleLines),
     };
   } catch {
     return {
@@ -232,6 +242,8 @@ function readSettings() {
       floatingLyricsScale: 100,
       floatingLyricsVisibleLineCount: 6,
       floatingLyricsBounds: null,
+      windowsLyricsFontSize: 32,
+      windowsLyricsVisibleLines: 3,
     };
   }
 }
@@ -258,6 +270,10 @@ function writeSettings(partial = {}) {
       ? normalizeFloatingLyricsVisibleLineCount(partial.floatingLyricsVisibleLineCount)
       : current.floatingLyricsVisibleLineCount,
     floatingLyricsBounds: hasBounds ? normalizeFloatingLyricsBounds(partial.floatingLyricsBounds) : current.floatingLyricsBounds,
+    windowsLyricsFontSize: Object.prototype.hasOwnProperty.call(partial, 'windowsLyricsFontSize')
+      ? normalizeWindowsLyricsFontSize(partial.windowsLyricsFontSize) : current.windowsLyricsFontSize,
+    windowsLyricsVisibleLines: Object.prototype.hasOwnProperty.call(partial, 'windowsLyricsVisibleLines')
+      ? normalizeWindowsLyricsVisibleLines(partial.windowsLyricsVisibleLines) : current.windowsLyricsVisibleLines,
   };
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(next, null, 2), 'utf8');
   return next;
@@ -474,13 +490,15 @@ function dedupeSongs(songs) {
 
 
 // ─── Permanent lyrics cache / LRCLIB lookup ──────────────────────────────────
-const lyricsDownloadsInFlight = new Set();
+const lyricsDownloadsInFlight = new Map();
 let backgroundLyricsRunning = false;
 
 function lyricsKeyForSong(song) {
   const artist = normalizeTextForDedupe(song?.artist || 'unknown artist');
   const title = normalizeTextForDedupe(song?.title || path.basename(song?.filePath || '', path.extname(song?.filePath || 'unknown')));
-  const raw = `${artist}::${title}`;
+  const raw = song?.lyricsSource === 'windows'
+    ? `${artist}::${title}::${normalizeTextForDedupe(song.album || '')}::${Math.round(Number(song.duration) || 0)}`
+    : `${artist}::${title}`;
   const hash = crypto.createHash('sha1').update(raw).digest('hex').slice(0, 24);
   return { raw, hash, artist, title };
 }
@@ -573,11 +591,11 @@ function lyricsMatchScore(song, record) {
 
 async function fetchLyricsFromLRCLIB(song) {
   const trackName = cleanSearchField(song?.title || '');
-  const artistName = cleanSearchField(song?.artist || '');
+  const artistName = cleanSearchField(song?.artist === 'Unknown Artist' ? '' : song?.artist || '');
   const albumName = cleanSearchField(song?.album || '');
   const duration = song?.duration ? Math.round(Number(song.duration)) : null;
 
-  if (!trackName || !artistName || artistName === 'Unknown Artist') {
+  if (!trackName || (!song?.lyricsSource && (!artistName || artistName === 'Unknown Artist'))) {
     console.log(`[lyrics] skipped: missing metadata for "${trackName || song?.fileName || 'unknown'}"`);
     return { status: 'missing', attempts: 0, error: 'Not enough metadata to search lyrics.' };
   }
@@ -590,6 +608,7 @@ async function fetchLyricsFromLRCLIB(song) {
   const attemptLimit = 4;
   let attempts = 0;
   let lastError = null;
+  let retrievalFailed = false;
 
   const titleNoVersion = cleanSearchField(
     trackName.replace(/\b(official|audio|video|lyrics?|mv|hd|hq|remix|live|performance|visualizer)\b/gi, ' ')
@@ -621,7 +640,7 @@ async function fetchLyricsFromLRCLIB(song) {
     console.log(`[lyrics] attempt ${attempts}/${attemptLimit}: exact ${params.artist_name} - ${params.track_name}`);
 
     try {
-      const exactRes = await fetch(exactUrl, { headers });
+      const exactRes = await fetch(exactUrl, { headers, signal: AbortSignal.timeout(8000) });
       if (exactRes.ok) {
         const record = await exactRes.json();
         if (record && (record.syncedLyrics || record.plainLyrics || record.instrumental)) {
@@ -637,9 +656,11 @@ async function fetchLyricsFromLRCLIB(song) {
         }
       } else {
         lastError = `LRCLIB exact returned ${exactRes.status}`;
+        if (exactRes.status === 429 || exactRes.status >= 500) retrievalFailed = true;
       }
     } catch (e) {
       lastError = e.message;
+      retrievalFailed = true;
       console.warn('[lyrics exact]', e.message);
     }
   }
@@ -660,9 +681,10 @@ async function fetchLyricsFromLRCLIB(song) {
 
     try {
       const searchUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(q)}`;
-      const res = await fetch(searchUrl, { headers });
+      const res = await fetch(searchUrl, { headers, signal: AbortSignal.timeout(8000) });
       if (!res.ok) {
         lastError = `LRCLIB search returned ${res.status}`;
+        if (res.status === 429 || res.status >= 500) retrievalFailed = true;
         continue;
       }
 
@@ -696,13 +718,14 @@ async function fetchLyricsFromLRCLIB(song) {
       };
     } catch (e) {
       lastError = e.message;
+      retrievalFailed = true;
       console.warn('[lyrics search]', e.message);
     }
   }
 
   console.log(`[lyrics] abandoned after ${attempts}/${attemptLimit}: ${artistName} - ${trackName}`);
   return {
-    status: 'not_found',
+    status: retrievalFailed ? 'error' : 'not_found',
     attempts,
     error: lastError || `No lyrics found after ${attempts} tries.`,
   };
@@ -713,27 +736,21 @@ async function getLyricsForSong(song, force = false) {
 
   const key = lyricsKeyForSong(song).hash;
   const cached = !force ? readCachedLyrics(song) : null;
-  if (cached) return cached;
+  // Keep permanent successful/missing results; temporary network failures can recover.
+  if (cached && (cached.status !== 'error' || Date.now() - cached.fetchedAt < 30000)) return cached;
+  if (!force && lyricsDownloadsInFlight.has(key)) return lyricsDownloadsInFlight.get(key);
 
-  if (lyricsDownloadsInFlight.has(key) && !force) {
-    for (let i = 0; i < 40; i++) {
-      await new Promise(resolve => setTimeout(resolve, 250));
-      const fresh = readCachedLyrics(song);
-      if (fresh) return fresh;
-      if (!lyricsDownloadsInFlight.has(key)) break;
+  const request = (async () => {
+    try {
+      const result = await fetchLyricsFromLRCLIB(song);
+      return writeCachedLyrics(song, result);
+    } catch (e) {
+      return writeCachedLyrics(song, { status: 'error', error: e.message });
     }
-    return { status: 'loading', cacheId: key };
-  }
-
-  lyricsDownloadsInFlight.add(key);
-  try {
-    const result = await fetchLyricsFromLRCLIB(song);
-    return writeCachedLyrics(song, result);
-  } catch (e) {
-    return writeCachedLyrics(song, { status: 'error', error: e.message });
-  } finally {
-    lyricsDownloadsInFlight.delete(key);
-  }
+  })();
+  lyricsDownloadsInFlight.set(key, request);
+  try { return await request; }
+  finally { if (lyricsDownloadsInFlight.get(key) === request) lyricsDownloadsInFlight.delete(key); }
 }
 
 async function backgroundFetchLyrics(songs) {

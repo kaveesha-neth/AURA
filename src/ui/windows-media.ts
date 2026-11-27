@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { mediaPosition } from "../core/media-timeline.mjs";
 
 export type MediaAction = "play" | "pause" | "next" | "previous" | "seek" | "shuffle" | "repeat";
 export type MediaSession = {
@@ -20,18 +21,23 @@ export function useWindowsMedia(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
     let disposed = false;
+    let receivedEvent = false;
     const update = (value: WindowsMediaState) => { if (!disposed) setSnapshot(value); };
     const updateOutputs = (value: { outputs?: Output[]; available?: boolean }) => { if (!disposed) setOutputs(value.available === false ? [] : [...(value.outputs || [])].sort((a, b) => Number(b.isDefault) - Number(a.isDefault))); };
-    const changed = (event: Event) => update((event as CustomEvent).detail);
+    const changed = (event: Event) => { receivedEvent = true; update((event as CustomEvent).detail); };
     const volume = (event: Event) => updateOutputs((event as CustomEvent).detail);
     window.addEventListener("windows-media-changed", changed);
     window.addEventListener("master-volume-changed", volume);
-    window.electronAPI?.getWindowsMedia?.().then(update).catch(() => update({ available: false, sessions: [], current: "", error: "unavailable" }));
+    window.electronAPI?.getWindowsMedia?.().then((value: WindowsMediaState) => { if (!receivedEvent) update(value); }).catch(() => { if (!receivedEvent) update({ available: false, sessions: [], current: "", error: "unavailable" }); });
     window.electronAPI?.getMasterVolume?.().then(updateOutputs).catch(() => {});
-    const timer = setInterval(() => setNow(Date.now()), 250);
-    return () => { disposed = true; clearInterval(timer); window.removeEventListener("windows-media-changed", changed); window.removeEventListener("master-volume-changed", volume); };
+    return () => { disposed = true; window.removeEventListener("windows-media-changed", changed); window.removeEventListener("master-volume-changed", volume); };
   }, [enabled]);
   const selected = snapshot.sessions.find(s => s.id === selectedId) || snapshot.sessions.find(s => s.id === snapshot.current) || snapshot.sessions.find(s => s.playing) || snapshot.sessions[0];
+  useEffect(() => {
+    if (!enabled || !selected?.playing) return;
+    const timer = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(timer);
+  }, [enabled, selected?.playing]);
   const command = async (action: MediaAction, value?: number) => {
     if (!selected || pending || !selected.controls[action]) return;
     setPending(true); setError("");
@@ -47,6 +53,6 @@ export function useWindowsMedia(enabled: boolean) {
     catch { setError("Couldn’t change the audio output."); }
     finally { setOutputPending(""); }
   };
-  const position = selected ? Math.min(selected.end || selected.position, Math.max(selected.start || 0, selected.position + (selected.playing ? Math.max(0, now - selected.updatedAt) / 1000 * (selected.rate ?? 1) : 0))) : 0;
-  return { ...snapshot, selected, select: (id: string) => { select(id); setError(""); }, outputs, pending, command, outputPending, selectOutput, message: error, position };
+  const position = mediaPosition(selected, Math.max(now, Date.now()));
+  return { ...snapshot, enabled, selected, select: (id: string) => { select(id); setError(""); }, outputs, pending, command, outputPending, selectOutput, message: error, position };
 }

@@ -26,3 +26,15 @@ export function parseLRC(text) {
 
   return out.sort((a, b) => a.time - b.time);
 }
+
+// Keep the native player's 80 ms tolerance and first-line preview behavior.
+export function activeLyricIndex(lines, time) {
+  if (!lines.length) return -1;
+  let lo = 0, hi = lines.length - 1, result = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (lines[mid].time <= time + 0.08) { result = mid; lo = mid + 1; }
+    else hi = mid - 1;
+  }
+  return Math.max(0, result);
+}

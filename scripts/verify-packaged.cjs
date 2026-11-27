@@ -39,8 +39,9 @@ function check(name,passed){checks.push({name,passed:!!passed});console.log(pass
   check('Packaged touch exit restores desktop',await run(`!isTouchMode&&document.getElementById('touch-player').hidden`));
   await run(`btnPlay.click()`);
   await run(`window.aura.touchMode(true);document.querySelectorAll('.touch-source-switch button')[1].click()`);await delay(900);
-  check('Packaged Windows mode replaces queue with session and output panels',await run(`!!document.querySelector('.system-sessions')&&!!document.querySelector('.system-outputs')&&!document.querySelector('.touch-queue')`));
-  check('Packaged Windows mode discovers real audio outputs',await run(`document.querySelectorAll('.system-output').length>0`));
+  check('Packaged Windows mode shows lyrics above sessions',await run(`document.querySelector('.touch-system-panel').firstElementChild.classList.contains('system-lyrics')&&!!document.querySelector('.system-sessions')&&!document.querySelector('.system-outputs')&&!document.querySelector('.touch-queue')`));
+  check('Packaged lyrics surface has no headings or controls',await run(`!document.querySelector('.system-lyrics header,.system-lyrics button,.system-lyrics h2,.system-lyrics img')`));
+  check('Packaged audio output discovery remains available through IPC',await run(`window.electronAPI.getMasterVolume().then(state=>state.available&&state.outputs.length>0)`));
   for(let i=0;i<80;i++){if(await run(`window.electronAPI.getWindowsMedia().then(s=>s.bridge==='dotnet8')`))break;await delay(150);}
   check('Packaged sessions use the compiled .NET 8 bridge',await run(`window.electronAPI.getWindowsMedia().then(s=>s.bridge==='dotnet8')`));
   check('Native connection failures retain diagnostic exception details',await run(`window.electronAPI.getWindowsMedia().then(s=>s.available||(!!s.error&&s.diagnostic?.includes('0x')))`));
