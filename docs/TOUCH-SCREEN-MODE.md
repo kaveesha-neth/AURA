@@ -6,7 +6,7 @@ The queue supports direct playback, Play Next, removal, and local title/artist s
 
 ## Native Queue / Lyrics view
 
-The native playback card has a compact Queue / Lyrics selector in its header, using the same material and touch targets as the playback-source selector. Queue is the default; its search, track count, actions, and scroll position are retained when switching views. Lyrics fill the existing card below the selector, without changing the three-column layout or interrupting playback.
+The native playback card has a compact Queue / Lyrics selector centered at its bottom, using the same material and touch targets as the playback-source selector. Queue is the default; its search, track count, actions, and scroll position are retained when switching views. Lyrics fill the existing card above the selector, without changing the three-column layout or interrupting playback.
 
 Native lyrics subscribe to the existing controller through a lightweight external store. They reuse the current track's retrieval, cache, parser, and audio timeline. The line presentation is shared with Windows Media and follows its font-size and visible-line preferences. Plain lyrics are shown as scrollable text labeled “Plain lyrics,” without simulated synchronized highlighting. Instrumental, loading, missing, and unavailable states appear in the same area.
 
@@ -14,7 +14,7 @@ The playback verification suite includes native lyrics checks and captures both 
 
 ### Lyric wrapping fix — 3.3.1
 
-Both touch playback sources now use natural-height lyric wrappers. The old fixed slots clipped Windows Media text and constrained native text to a slot instead of the whole viewport. The shared presentation measures rendered heights at lyric changes, viewport resizes, and font loads. It centers the active line and places neighboring lines outside its measured bounds; the outer lyrics viewport is the clipping boundary. Configured font sizes are preserved unless a line exceeds the entire viewport, when a bounded measurement search reduces its font size to fit. The native viewport remains below the Queue / Lyrics selector; card dimensions and playback synchronization are unchanged.
+Both touch playback sources now use natural-height lyric wrappers. The old fixed slots clipped Windows Media text and constrained native text to a slot instead of the whole viewport. The shared presentation measures rendered heights at lyric changes, viewport resizes, and font loads. It centers the active line and places neighboring lines outside its measured bounds; the outer lyrics viewport is the clipping boundary. Configured font sizes are preserved unless a line exceeds the entire viewport, when a bounded measurement search reduces its font size to fit. The native viewport remains above the Queue / Lyrics selector; card dimensions and playback synchronization are unchanged.
 
 `scripts/verify-lyric-layout.cjs` exercises single-line, wrapped, multiline, and exceptionally long text in both sources, with 18/32/48 px fonts, 1/3/7 visible lines, and 1024 × 600 and 800 × 600 viewports. It checks centering, full text bounds, neighbor separation, font preservation/fallback, stable surrounding cards, and animation frames between different-height lines. Results and screenshots are written to `.cache/lyric-layout-results/`.
 

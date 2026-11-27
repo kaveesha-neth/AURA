@@ -133,8 +133,9 @@
 @media (max-height: 700px) and (min-width: 761px) { .system-section-heading > div > small { display: none; } .system-sessions { padding-top: 14px; } .system-session-card { min-height: 94px; padding: 10px; } }
 @media (prefers-reduced-motion: reduce) { .system-lyric { transition: none; } }
 
-/* Reuse the source selector's material and targets inside the existing header. */
-.touch-queue > header { flex-shrink: 0; padding: 0 6px 14px; }
+/* Keep the source selector's material and targets in the centered card footer. */
+.touch-queue > header { flex-shrink: 0; justify-content: flex-end; padding: 0 6px 14px; }
+.touch-view-footer { display: flex; justify-content: center; flex-shrink: 0; padding: 12px 6px 0; }
 .touch-queue header > small { display: block; }
 .touch-queue .touch-view-switch { order: initial; width: auto; flex-shrink: 0; }
 .touch-view-switch button { padding-inline: 14px; touch-action: manipulation; }

@@ -115,13 +115,7 @@ export function TouchPlayer() {
           </div>
         </section>
         {windows ? <WindowsMediaPanel media={remote} /> : <section className="touch-queue touch-panel" aria-label="Queue and lyrics">
-          <header>
-            <div className="touch-source-switch touch-view-switch" role="group" aria-label="Queue or lyrics">
-              <button id="touch-view-queue" aria-pressed={view === "queue"} aria-controls="touch-queue-content" onClick={() => changeView("queue")}><ListMusic />Queue</button>
-              <button id="touch-view-lyrics" aria-pressed={view === "lyrics"} aria-controls="touch-lyrics-content" onClick={() => changeView("lyrics")}><AudioLines />Lyrics</button>
-            </div>
-            {view === "queue" && <small>{queue.nodes.length} tracks</small>}
-          </header>
+          {view === "queue" && <header><small>{queue.nodes.length} tracks</small></header>}
           <div id="touch-queue-content" className="touch-queue-content" hidden={view !== "queue"}>
           <label className="touch-search"><Search /><input type="search" placeholder="Find in queue" aria-label="Find in touch queue" value={query} onChange={e => setQuery(e.target.value)} /></label>
           <div className="touch-track-list" ref={trackList} onScroll={e => { if (view === "queue") queueScroll.current = e.currentTarget.scrollTop; }}>
@@ -140,6 +134,12 @@ export function TouchPlayer() {
           <div id="touch-lyrics-content" className="touch-lyrics-content" hidden={view !== "lyrics"}>
             {active && view === "lyrics" && <NativeLyrics />}
           </div>
+          <footer className="touch-view-footer">
+            <div className="touch-source-switch touch-view-switch" role="group" aria-label="Queue or lyrics">
+              <button id="touch-view-queue" aria-pressed={view === "queue"} aria-controls="touch-queue-content" onClick={() => changeView("queue")}><ListMusic />Queue</button>
+              <button id="touch-view-lyrics" aria-pressed={view === "lyrics"} aria-controls="touch-lyrics-content" onClick={() => changeView("lyrics")}><AudioLines />Lyrics</button>
+            </div>
+          </footer>
         </section>}
         <section className="touch-volume touch-panel" aria-label="Volume">
           <AuraIconButton label={(media.master ? media.muted : !media.volume) ? "Unmute" : "Mute"} disabled={!media.available} onClick={() => click("vol-icon")}>{media.muted || !media.volume ? <VolumeX /> : <Volume2 />}</AuraIconButton>
