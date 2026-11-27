@@ -7,6 +7,7 @@ module.exports = async ({ win, run, check, output, delay }) => {
   check('Touch mode enters native fullscreen and keeps playback running', win.isFullScreen() && await run(`isTouchMode&&!isFullscreenMode&&!audio.paused&&!document.getElementById('touch-player').hidden`));
   check('Touch queue reflects real music and artwork', await run(`document.querySelectorAll('.touch-row').length===queue.size&&document.querySelector('.touch-art img').naturalWidth>0`));
   check('Touch layout fits fullscreen', await run(`['.touch-now','.touch-queue','.touch-volume','.touch-transport'].every(s=>{const r=document.querySelector(s).getBoundingClientRect();return r.width>0&&r.top>=0&&r.bottom<=innerHeight&&r.right<=innerWidth})`));
+  await require('./native-lyrics-audit.cjs')({ win, run, check, output, delay });
   await run(`document.getElementById('touch-play').click()`);
   await delay(100);
   check('Touch pause uses shared audio state', await run(`audio.paused&&document.getElementById('touch-play').getAttribute('aria-label')==='Play'`));

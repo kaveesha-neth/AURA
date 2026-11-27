@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { AudioLines, Settings2, Minimize2, ListMusic, Music2, Shuffle, Rewind, FastForward, Play, Pause, Repeat, Repeat1, Volume2, VolumeX, ListPlus, X, Plus, Search, MonitorPlay } from "lucide-react";
+import { AudioLines, Settings2, Minimize2, ListMusic, Music2, Shuffle, Rewind, FastForward, Play, Pause, Repeat, Repeat1, Volume2, VolumeX, ListPlus, X, Search, MonitorPlay } from "lucide-react";
 import { AuraIconButton } from "./materials";
 import { fileUrl, useQueue } from "./queue-store";
 import "./touch-player.css";
 import { useWindowsMedia, type MediaAction } from "./windows-media";
 import { WindowsMediaPanel } from "./WindowsMediaPanel";
+import { NativeLyrics } from "./NativeLyrics";
 
 const time = (value: number) => `${Math.floor(value / 60)}:${String(Math.floor(value % 60)).padStart(2, "0")}`;
 const click = (id: string) => document.getElementById(id)?.click();
@@ -13,6 +14,10 @@ export function TouchPlayer() {
   const queue = useQueue();
   const [active, setActive] = useState(false);
   const [query, setQuery] = useState("");
+  const [view, setView] = useState<"queue" | "lyrics">("queue");
+  const queueScroll = useRef(0);
+  const trackList = useRef<HTMLDivElement>(null);
+  const lastQueueTrack = useRef<string | null>(null);
   const [source, setSource] = useState<"native" | "windows">("native");
   const [seekDraft, setSeekDraft] = useState<number | null>(null);
   const remote = useWindowsMedia(active && source === "windows");
@@ -64,8 +69,18 @@ export function TouchPlayer() {
     return () => { events.forEach(event => audio.removeEventListener(event, sync)); window.removeEventListener("aura-volume-changed", sync); };
   }, [active]);
   useEffect(() => {
-    if (active && !query) currentRow.current?.scrollIntoView({ block: "nearest" });
+    if (active && source === "native" && !query && view === "queue" && lastQueueTrack.current !== queue.current) {
+      currentRow.current?.scrollIntoView({ block: "nearest" });
+      lastQueueTrack.current = queue.current;
+    }
   }, [active, queue.current, query, source]);
+  useEffect(() => {
+    if (view === "queue" && trackList.current) trackList.current.scrollTop = queueScroll.current;
+  }, [view, source]);
+  const changeView = (next: "queue" | "lyrics") => {
+    if (view === "queue") queueScroll.current = trackList.current?.scrollTop || 0;
+    setView(next);
+  };
   const exit = () => window.aura?.touchMode(false);
   const addMusic = () => { exit(); click("btn-add-files"); };
   const nodes = queue.nodes.filter(({ song }) => `${song.title} ${song.artist}`.toLowerCase().includes(query.toLowerCase()));
@@ -78,7 +93,6 @@ export function TouchPlayer() {
           <button aria-pressed={windows} disabled={!window.electronAPI?.systemVolumeSupported} onClick={() => changeSource("windows")}><MonitorPlay />Windows media</button>
         </div>
         <div className="touch-header-actions">
-          {!windows && <AuraIconButton label="Add music" onClick={addMusic}><Plus /></AuraIconButton>}
           <AuraIconButton label="Settings" onClick={() => { exit(); click("btn-settings"); }}><Settings2 /></AuraIconButton>
           <AuraIconButton id="touch-exit" label="Exit touch screen mode (Esc)" onClick={exit}><Minimize2 /></AuraIconButton>
         </div>
@@ -99,10 +113,11 @@ export function TouchPlayer() {
             <AuraIconButton label={(windows ? ["Repeat off", "Repeat one", "Repeat all"] : ["Repeat off", "Repeat all", "Repeat one"])[repeat]} aria-pressed={!!repeat} disabled={!can("repeat")} onClick={() => transport("repeat", "btn-repeat")}>{repeat === (windows ? 1 : 2) ? <Repeat1 /> : <Repeat />}</AuraIconButton>
           </div>
         </section>
-        {windows ? <WindowsMediaPanel media={remote} /> : <section className="touch-queue touch-panel" aria-label="Queue">
-          <header><h2><ListMusic />Queue <span>· Up next</span></h2><small>{queue.nodes.length} tracks</small></header>
+        {windows ? <WindowsMediaPanel media={remote} /> : <section className="touch-queue touch-panel" aria-label="Queue and lyrics">
+          {view === "queue" && <header><small>{queue.nodes.length} tracks</small></header>}
+          <div id="touch-queue-content" className="touch-queue-content" hidden={view !== "queue"}>
           <label className="touch-search"><Search /><input type="search" placeholder="Find in queue" aria-label="Find in touch queue" value={query} onChange={e => setQuery(e.target.value)} /></label>
-          <div className="touch-track-list">
+          <div className="touch-track-list" ref={trackList} onScroll={e => { if (view === "queue") queueScroll.current = e.currentTarget.scrollTop; }}>
             {nodes.map(node => <div key={node.id} ref={node.id === queue.current ? currentRow : undefined} className={`touch-row ${node.id === queue.current ? "is-current" : ""}`}>
               <button className="touch-track" aria-current={node.id === queue.current ? "true" : undefined} onClick={() => window.aura.play(node.id)}>
                 <span className="touch-thumb"><Music2 />{node.song.coverPath && <img src={fileUrl(node.song.coverPath)} alt="" loading="lazy" onError={e => { e.currentTarget.style.visibility = "hidden"; }} />}</span>
@@ -114,6 +129,16 @@ export function TouchPlayer() {
             </div>)}
             {!nodes.length && <div className="touch-empty"><Music2 /><h3>{query ? "No matching tracks" : "Make room for music"}</h3><p>{query ? "Try another title or artist." : "Add audio files to start listening."}</p><button onClick={query ? () => setQuery("") : addMusic}>{query ? "Clear search" : "Add music"}</button></div>}
           </div>
+          </div>
+          <div id="touch-lyrics-content" className="touch-lyrics-content" hidden={view !== "lyrics"}>
+            {active && view === "lyrics" && <NativeLyrics />}
+          </div>
+          <footer className="touch-view-footer">
+            <div className="touch-source-switch touch-view-switch" role="group" aria-label="Queue or lyrics">
+              <button id="touch-view-queue" aria-pressed={view === "queue"} aria-controls="touch-queue-content" onClick={() => changeView("queue")}><ListMusic />Queue</button>
+              <button id="touch-view-lyrics" aria-pressed={view === "lyrics"} aria-controls="touch-lyrics-content" onClick={() => changeView("lyrics")}><AudioLines />Lyrics</button>
+            </div>
+          </footer>
         </section>}
         <section className="touch-volume touch-panel" aria-label="Volume">
           <AuraIconButton label={(media.master ? media.muted : !media.volume) ? "Unmute" : "Mute"} disabled={!media.available} onClick={() => click("vol-icon")}>{media.muted || !media.volume ? <VolumeX /> : <Volume2 />}</AuraIconButton>
