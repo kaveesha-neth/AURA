@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { AudioLines, Settings2, Minimize2, ListMusic, Music2, Shuffle, Rewind, FastForward, Play, Pause, Repeat, Repeat1, Volume2, VolumeX, ListPlus, X, Plus, Search, MonitorPlay } from "lucide-react";
+import { AudioLines, Settings2, Minimize2, ListMusic, Music2, Shuffle, Rewind, FastForward, Play, Pause, Repeat, Repeat1, Volume2, VolumeX, ListPlus, X, Search, MonitorPlay } from "lucide-react";
 import { AuraIconButton } from "./materials";
 import { fileUrl, useQueue } from "./queue-store";
 import "./touch-player.css";
@@ -93,7 +93,6 @@ export function TouchPlayer() {
           <button aria-pressed={windows} disabled={!window.electronAPI?.systemVolumeSupported} onClick={() => changeSource("windows")}><MonitorPlay />Windows media</button>
         </div>
         <div className="touch-header-actions">
-          {!windows && <AuraIconButton label="Add music" onClick={addMusic}><Plus /></AuraIconButton>}
           <AuraIconButton label="Settings" onClick={() => { exit(); click("btn-settings"); }}><Settings2 /></AuraIconButton>
           <AuraIconButton id="touch-exit" label="Exit touch screen mode (Esc)" onClick={exit}><Minimize2 /></AuraIconButton>
         </div>
