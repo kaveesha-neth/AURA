@@ -113,18 +113,17 @@
 .system-connection-details > p { font-size: 11px; overflow-wrap: anywhere; }
 .system-connection-details > button { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #c7afe933; margin-top: 8px; }
 /* The surface is the viewport: no inner cards, headings or metadata. */
-.system-lyrics { flex: 1 1 62%; position: relative; overflow: hidden; container-type: size; }
+.system-lyrics { --lyric-spacing: 128px; flex: 1 1 62%; position: relative; overflow: hidden; container-type: size; }
 .system-lyric {
-  --lyric-slot: min(calc(90cqh / var(--system-lyrics-lines, 3)), 128px);
-  position: absolute; top: 50%; left: 7%; width: 86%; height: var(--lyric-slot);
+  position: absolute; top: 50%; left: 7%; width: 86%;
   margin: 0; display: flex; align-items: center; justify-content: center;
-  text-align: center; overflow: hidden; overflow-wrap: anywhere; text-wrap: balance;
-  font-size: min(var(--system-lyrics-font-size, 32px), calc(var(--lyric-slot) / 1.35)); line-height: 1.35; font-weight: 450;
+  text-align: center; overflow: visible; overflow-wrap: anywhere; text-wrap: balance;
+  font-size: var(--system-lyrics-font-size, 32px); line-height: 1.35; font-weight: 450;
   color: #bdb1c9; opacity: .42;
-  transform: translateY(calc((var(--lyric-offset) - .5) * var(--lyric-slot))) scale(.92);
+  transform: translateY(calc(var(--lyric-y, 0px) - 50%)) scale(.92);
   transition: transform 480ms cubic-bezier(.22,.7,.25,1), opacity 380ms ease, color 380ms ease;
 }
-.system-lyric.is-current { color: var(--touch-accent); opacity: 1; font-weight: 550; transform: translateY(calc((var(--lyric-offset) - .5) * var(--lyric-slot))) scale(1); }
+.system-lyric.is-current { color: var(--touch-accent); opacity: 1; font-weight: 550; transform: translateY(calc(var(--lyric-y, 0px) - 50%)) scale(1); }
 .system-lyric[aria-hidden=true] { opacity: 0; }
 @starting-style { .system-lyric, .system-lyric.is-current { opacity: 0; } }
 .system-lyrics-message { position: absolute; inset: 0; margin: 0; display: grid; place-items: center; padding: 24px; text-align: center; font-size: 14px; color: #afa2ba; }
@@ -141,16 +140,9 @@
 .touch-view-switch button { padding-inline: 14px; touch-action: manipulation; }
 .touch-queue-content, .touch-lyrics-content { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .touch-queue-content[hidden], .touch-lyrics-content[hidden] { display: none; }
-.touch-native-lyrics { flex: 1; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.touch-native-lyrics { --lyric-spacing: 160px; flex: 1; border: 0; border-radius: 0; background: none; box-shadow: none; }
 .system-lyric > span { width: 100%; }
 .touch-plain-lyrics { overflow-y: auto; min-height: 0; height: 100%; padding: 20px 7%; text-align: center; overscroll-behavior: contain; touch-action: pan-y; }
 .touch-plain-lyrics small { color: #afa2ba; font-size: 13px; }
 .touch-plain-lyrics p { font-size: min(var(--system-lyrics-font-size, 32px), 26px); line-height: 1.5; overflow-wrap: anywhere; margin: 20px 0; }
 :root[data-effects=reduced] .touch-native-lyrics .system-lyric { transition: none; }
-
-.touch-native-lyrics .system-lyric {
-  --lyric-slot: min(calc(90cqh / var(--system-lyrics-lines, 3)), 160px);
-  font-size: min(var(--system-lyrics-font-size, 32px), calc(var(--lyric-slot) / 4.05));
-  overflow-y: auto; align-items: safe center; overscroll-behavior: contain;
-  touch-action: pan-y; scrollbar-width: thin;
-}

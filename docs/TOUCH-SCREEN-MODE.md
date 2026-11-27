@@ -12,6 +12,12 @@ Native lyrics subscribe to the existing controller through a lightweight externa
 
 The playback verification suite includes native lyrics checks and captures both views at a 1024 × 600 CSS viewport under `docs/verification/touch-native-*.png`. These checks use synthetic audio, cached lyrics, and an isolated profile; physical touchscreen validation is separate.
 
+### Lyric wrapping fix — 3.3.1
+
+Both touch playback sources now use natural-height lyric wrappers. The old fixed slots clipped Windows Media text and constrained native text to a slot instead of the whole viewport. The shared presentation measures rendered heights at lyric changes, viewport resizes, and font loads. It centers the active line and places neighboring lines outside its measured bounds; the outer lyrics viewport is the clipping boundary. Configured font sizes are preserved unless a line exceeds the entire viewport, when a bounded measurement search reduces its font size to fit. The native viewport remains below the Queue / Lyrics selector; card dimensions and playback synchronization are unchanged.
+
+`scripts/verify-lyric-layout.cjs` exercises single-line, wrapped, multiline, and exceptionally long text in both sources, with 18/32/48 px fonts, 1/3/7 visible lines, and 1024 × 600 and 800 × 600 viewports. It checks centering, full text bounds, neighbor separation, font preservation/fallback, stable surrounding cards, and animation frames between different-height lines. Results and screenshots are written to `.cache/lyric-layout-results/`.
+
 ## Original 3.1.0 validation
 
 - TypeScript check and production renderer build passed.

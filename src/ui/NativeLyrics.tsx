@@ -16,7 +16,7 @@ export const NativeLyrics = memo(function NativeLyrics() {
         <small>Plain lyrics</small>
         {lyrics.lines.map((line, index) => <p key={index}>{line.text}</p>)}
       </div> : lyrics.lines.length ?
-      <LyricLines key={lyrics.track} lines={lyrics.lines} index={lyrics.activeIndex} visible={preferences.windowsLyricsVisibleLines} fit fontSize={preferences.windowsLyricsFontSize} /> :
+      <LyricLines key={lyrics.track} lines={lyrics.lines} index={lyrics.activeIndex} visible={preferences.windowsLyricsVisibleLines} fontSize={preferences.windowsLyricsFontSize} /> :
       <p className="system-lyrics-message" role="status">{lyrics.message}</p>}
   </div>;
 });

@@ -13,7 +13,7 @@ export function SessionLyrics({ media }: { media: ReturnType<typeof useWindowsMe
     "--system-lyrics-font-size": `${preferences.windowsLyricsFontSize}px`,
     "--system-lyrics-lines": preferences.windowsLyricsVisibleLines,
   } as CSSProperties}>
-    {lyrics.lines.length ? <LyricLines key={lyrics.key} lines={lyrics.lines} index={index} visible={preferences.windowsLyricsVisibleLines} />
+    {lyrics.lines.length ? <LyricLines key={lyrics.key} lines={lyrics.lines} index={index} visible={preferences.windowsLyricsVisibleLines} fontSize={preferences.windowsLyricsFontSize} />
       : <p className="system-lyrics-message" role="status">{lyrics.message}</p>}
   </section>;
 }
