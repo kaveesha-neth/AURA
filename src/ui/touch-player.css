@@ -133,3 +133,24 @@
 @media (max-width: 760px) { .touch-header { flex-wrap: wrap; gap: 12px; } .touch-source-switch { order: 3; width: 100%; } .touch-source-switch button { flex: 1; } .touch-system-panel { grid-column: 1; grid-row: 2; min-height: 520px; } .touch-layout.is-windows-source { grid-template-rows: minmax(330px, 1fr) minmax(520px, 1fr); } .touch-system-panel .system-sessions { flex-basis: 38%; } }
 @media (max-height: 700px) and (min-width: 761px) { .system-section-heading > div > small { display: none; } .system-sessions { padding-top: 14px; } .system-session-card { min-height: 94px; padding: 10px; } }
 @media (prefers-reduced-motion: reduce) { .system-lyric { transition: none; } }
+
+/* Reuse the source selector's material and targets inside the existing header. */
+.touch-queue > header { flex-shrink: 0; padding: 0 6px 14px; }
+.touch-queue header > small { display: block; }
+.touch-queue .touch-view-switch { order: initial; width: auto; flex-shrink: 0; }
+.touch-view-switch button { padding-inline: 14px; touch-action: manipulation; }
+.touch-queue-content, .touch-lyrics-content { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.touch-queue-content[hidden], .touch-lyrics-content[hidden] { display: none; }
+.touch-native-lyrics { flex: 1; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.system-lyric > span { width: 100%; }
+.touch-plain-lyrics { overflow-y: auto; min-height: 0; height: 100%; padding: 20px 7%; text-align: center; overscroll-behavior: contain; touch-action: pan-y; }
+.touch-plain-lyrics small { color: #afa2ba; font-size: 13px; }
+.touch-plain-lyrics p { font-size: min(var(--system-lyrics-font-size, 32px), 26px); line-height: 1.5; overflow-wrap: anywhere; margin: 20px 0; }
+:root[data-effects=reduced] .touch-native-lyrics .system-lyric { transition: none; }
+
+.touch-native-lyrics .system-lyric {
+  --lyric-slot: min(calc(90cqh / var(--system-lyrics-lines, 3)), 160px);
+  font-size: min(var(--system-lyrics-font-size, 32px), calc(var(--lyric-slot) / 4.05));
+  overflow-y: auto; align-items: safe center; overscroll-behavior: contain;
+  touch-action: pan-y; scrollbar-width: thin;
+}

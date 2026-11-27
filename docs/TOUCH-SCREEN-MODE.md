@@ -4,7 +4,15 @@ The hand button beside Settings enters native fullscreen. The new view follows t
 
 The queue supports direct playback, Play Next, removal, and local title/artist search. Controls have accessible labels and native range inputs support touch, mouse, and keyboard input. Missing artwork and empty queues have dedicated fallback states. The layout adapts to narrower displays. Exit or Escape restores the desktop and returns focus to the trigger. Native fullscreen exits also clear touch mode. Automatic immersive mode is suppressed while touch mode is active. Settings returns to desktop settings; Add Music returns to the desktop file picker. Touch mode is deliberately a session view and is not restored automatically at startup.
 
-## Validation
+## Native Queue / Lyrics view
+
+The native playback card has a compact Queue / Lyrics selector in its header, using the same material and touch targets as the playback-source selector. Queue is the default; its search, track count, actions, and scroll position are retained when switching views. Lyrics fill the existing card below the selector, without changing the three-column layout or interrupting playback.
+
+Native lyrics subscribe to the existing controller through a lightweight external store. They reuse the current track's retrieval, cache, parser, and audio timeline. The line presentation is shared with Windows Media and follows its font-size and visible-line preferences. Plain lyrics are shown as scrollable text labeled “Plain lyrics,” without simulated synchronized highlighting. Instrumental, loading, missing, and unavailable states appear in the same area.
+
+The playback verification suite includes native lyrics checks and captures both views at a 1024 × 600 CSS viewport under `docs/verification/touch-native-*.png`. These checks use synthetic audio, cached lyrics, and an isolated profile; physical touchscreen validation is separate.
+
+## Original 3.1.0 validation
 
 - TypeScript check and production renderer build passed.
 - 54 Electron integration checks passed, including actual Chromium touch contacts for seek and vertical volume, shared pause/shuffle/repeat state, native fullscreen, Escape and focus restoration, session restoration, and existing playback/library behavior. No renderer errors.

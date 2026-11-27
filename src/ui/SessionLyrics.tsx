@@ -1,22 +1,9 @@
-import { memo, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
 import { activeLyricIndex } from "../core/lyrics.mjs";
-import { useSessionLyrics, type LyricLine } from "./useSessionLyrics";
+import { useSessionLyrics } from "./useSessionLyrics";
+import { LyricLines } from "./LyricLines";
 import type { useWindowsMedia } from "./windows-media";
 import { useSessionLyricsPreferences } from "./session-lyrics-preferences";
-
-// Stable timestamp/index keys let existing lines move between slots without
-// restarting animations on timeline reports. Keep one extra line on either side
-// ready to enter, including when the user changes the visible line count.
-const LyricLines = memo(function LyricLines({ lines, index, visible }: { lines: LyricLine[]; index: number; visible: number }) {
-  const radius = Math.floor(visible / 2);
-  const start = Math.max(0, index - radius - 1);
-  return <>{lines.slice(start, index + radius + 2).map((line, offset) => {
-    const lineIndex = start + offset;
-    const distance = lineIndex - index;
-    return <p key={lineIndex} className={`system-lyric ${distance === 0 ? "is-current" : ""}`}
-      aria-hidden={Math.abs(distance) > radius} style={{ "--lyric-offset": distance } as CSSProperties}>{line.text}</p>;
-  })}</>;
-});
 
 export function SessionLyrics({ media }: { media: ReturnType<typeof useWindowsMedia> }) {
   const preferences = useSessionLyricsPreferences();
